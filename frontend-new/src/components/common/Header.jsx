@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -22,13 +22,50 @@ export default function Header({ cartCount = 0 }) {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const isLoggedIn = localStorage.getItem('token');
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
+  const [userType, setUserType] = useState(localStorage.getItem('userType'));
+
+  // Listen to storage changes (from login/logout)
+  useEffect(() => {
+    const handleAuthChange = (event) => {
+      const token = localStorage.getItem('token');
+      const uType = localStorage.getItem('userType');
+      setIsLoggedIn(!!token);
+      setUserType(uType);
+    };
+
+    window.addEventListener('authChange', handleAuthChange);
+    window.addEventListener('storage', handleAuthChange);
+    
+    return () => {
+      window.removeEventListener('authChange', handleAuthChange);
+      window.removeEventListener('storage', handleAuthChange);
+    };
+  }, []);
+
+  // Also listen for page visibility to refresh auth state
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      const token = localStorage.getItem('token');
+      const uType = localStorage.getItem('userType');
+      setIsLoggedIn(!!token);
+      setUserType(uType);
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
 
   const handleMenuOpen = (e) => setAnchorEl(e.currentTarget);
   const handleMenuClose = () => setAnchorEl(null);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('userType');
+    localStorage.removeItem('userId');
+    setIsLoggedIn(false);
+    setUserType(null);
+    window.dispatchEvent(new CustomEvent('authChange', { detail: { isLoggedIn: false } }));
     handleMenuClose();
     navigate('/login');
   };
@@ -104,23 +141,24 @@ export default function Header({ cartCount = 0 }) {
           </IconButton>
 
           <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
-            {!isLoggedIn ? (
-              <>
-                <MenuItem onClick={() => { handleMenuClose(); navigate('/login'); }}>
-                  Đăng Nhập
+            {!isLoggedIn ? [
+              <MenuItem key="login" onClick={() => { handleMenuClose(); navigate('/login'); }}>
+                Đăng Nhập
+              </MenuItem>,
+              <MenuItem key="register" onClick={() => { handleMenuClose(); navigate('/register'); }}>
+                Đăng Ký
+              </MenuItem>
+            ] : [
+              <MenuItem key="profile" onClick={() => { handleMenuClose(); navigate('/profile'); }}>
+                Trang Cá Nhân
+              </MenuItem>,
+              userType === 'supplier' ? (
+                <MenuItem key="shop" onClick={() => { handleMenuClose(); navigate('/supplier/products'); }}>
+                  Quản Lý Cửa Hàng
                 </MenuItem>
-                <MenuItem onClick={() => { handleMenuClose(); navigate('/register'); }}>
-                  Đăng Ký
-                </MenuItem>
-              </>
-            ) : (
-              <>
-                <MenuItem onClick={() => { handleMenuClose(); navigate('/profile'); }}>
-                  Trang Cá Nhân
-                </MenuItem>
-                <MenuItem onClick={handleLogout}>Đăng Xuất</MenuItem>
-              </>
-            )}
+              ) : null,
+              <MenuItem key="logout" onClick={handleLogout}>Đăng Xuất</MenuItem>
+            ].filter(Boolean)}
           </Menu>
         </Box>
       </Toolbar>

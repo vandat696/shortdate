@@ -1,4 +1,5 @@
 import User from '../models/User.js';
+import SupplierDetails from '../models/SupplierDetails.js';
 import { hashPassword, comparePassword, generateToken } from '../config/auth-helpers.js';
 
 // Validation helpers
@@ -131,18 +132,98 @@ export const login = async (req, res) => {
 export const getProfile = async (req, res) => {
   try {
     const userId = req.user.userId; // Từ middleware auth
-    const user = await User.findById(userId);
+    const userWithSupplier = await User.findByIdWithSupplierInfo(userId);
 
-    if (!user) {
+    if (!userWithSupplier) {
       return res.status(404).json({ error: 'User not found' });
     }
 
     res.status(200).json({
-      user
+      user: userWithSupplier.user,
+      supplier_details: userWithSupplier.supplierInfo
     });
   } catch (err) {
     console.error('Get profile error:', err.message);
     res.status(500).json({ error: 'Failed to get profile', message: err.message });
+  }
+};
+
+// CẬP NHẬT PROFILE
+export const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { first_name, last_name, phone, avatar_url } = req.body;
+
+    const updatedUser = await User.updateProfile(userId, {
+      first_name,
+      last_name,
+      phone,
+      avatar_url
+    });
+
+    res.status(200).json({
+      message: 'Profile updated successfully',
+      user: updatedUser
+    });
+  } catch (err) {
+    console.error('Update profile error:', err.message);
+    res.status(500).json({ error: 'Failed to update profile', message: err.message });
+  }
+};
+
+// CẬP NHẬT SUPPLIER PROFILE
+export const updateSupplierProfile = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { user_type } = req.user;
+
+    if (user_type !== 'supplier') {
+      return res.status(403).json({ error: 'Only suppliers can update supplier profile' });
+    }
+
+    const {
+      company_name,
+      tax_id,
+      warehouse_address,
+      contact_phone,
+      contact_email,
+      description,
+      banner_url
+    } = req.body;
+
+    // Kiểm tra supplier_details đã tồn tại chưa
+    let supplierDetails = await SupplierDetails.findByUserId(userId);
+
+    if (!supplierDetails) {
+      // Tạo mới
+      supplierDetails = await SupplierDetails.create({
+        user_id: userId,
+        company_name,
+        tax_id,
+        warehouse_address,
+        contact_phone,
+        contact_email
+      });
+    } else {
+      // Cập nhật
+      supplierDetails = await SupplierDetails.update(userId, {
+        company_name,
+        tax_id,
+        warehouse_address,
+        contact_phone,
+        contact_email,
+        description,
+        banner_url
+      });
+    }
+
+    res.status(200).json({
+      message: 'Supplier profile updated successfully',
+      supplier_details: supplierDetails
+    });
+  } catch (err) {
+    console.error('Update supplier profile error:', err.message);
+    res.status(500).json({ error: 'Failed to update supplier profile', message: err.message });
   }
 };
 

@@ -93,6 +93,44 @@ class User {
     }
     return true;
   }
+
+  // Cập nhật profile
+  static async updateProfile(id, profileData) {
+    const { first_name, last_name, phone, avatar_url } = profileData;
+    
+    const query = `
+      UPDATE users 
+      SET first_name = COALESCE($1, first_name),
+          last_name = COALESCE($2, last_name),
+          phone = COALESCE($3, phone),
+          avatar_url = COALESCE($4, avatar_url),
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = $5 
+      RETURNING id, email, first_name, last_name, phone, avatar_url, user_type
+    `;
+    
+    const result = await pool.query(query, [first_name, last_name, phone, avatar_url, id]);
+    return result.rows[0];
+  }
+
+  // Lấy user với supplier info (nếu là supplier)
+  static async findByIdWithSupplierInfo(id) {
+    const userQuery = 'SELECT * FROM users WHERE id = $1';
+    const userResult = await pool.query(userQuery, [id]);
+    
+    if (!userResult.rows.length) return null;
+    
+    const user = userResult.rows[0];
+    let supplierInfo = null;
+
+    if (user.user_type === 'supplier') {
+      const supplierQuery = 'SELECT * FROM supplier_details WHERE user_id = $1';
+      const supplierResult = await pool.query(supplierQuery, [id]);
+      supplierInfo = supplierResult.rows[0] || null;
+    }
+
+    return { user, supplierInfo };
+  }
 }
 
 export default User;

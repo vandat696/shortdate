@@ -1,70 +1,75 @@
-import { Box, Button, Container, Grid, Pagination, Typography } from '@mui/material';
-import { useState } from 'react';
+import { Box, Button, Container, Grid, Pagination, Typography, CircularProgress } from '@mui/material';
+import { useState, useEffect } from 'react';
 import ProductCard from '../components/ProductCard';
+import { productService } from '../../../services/api';
 
-const mockProducts = [
+// Fallback mockup products (xóa sau khi API hoạt động)
+const FALLBACK_PRODUCTS = [
   {
     id: 1,
     name: 'Cà Chua Tươi',
-    product_type: 'fresh',
+    product_type: 'fresh_product',
     current_price: 25000,
     original_price: 35000,
-    discount_percentage: 28,
-    stock: 15,
+    stock_quantity: 15,
+    category: 'vegetables',
+    expiry_date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
   },
   {
     id: 2,
     name: 'Gạo Lứt 5kg',
-    product_type: 'dry',
+    product_type: 'dry_product',
     current_price: 120000,
     original_price: 150000,
-    discount_percentage: 20,
-    stock: 8,
-  },
-  {
-    id: 3,
-    name: 'Dâu Tây Nhập Khẩu',
-    product_type: 'fresh',
-    current_price: 45000,
-    original_price: 65000,
-    discount_percentage: 31,
-    stock: 5,
-  },
-  {
-    id: 4,
-    name: 'Dầu Ôliu Extra Virgin',
-    product_type: 'dry',
-    current_price: 250000,
-    original_price: 320000,
-    discount_percentage: 21,
-    stock: 12,
-  },
-  {
-    id: 5,
-    name: 'Chuối Vàng Tươi',
-    product_type: 'fresh',
-    current_price: 15000,
-    original_price: 22000,
-    discount_percentage: 32,
-    stock: 20,
-  },
-  {
-    id: 6,
-    name: 'Bắp Chuối 1kg',
-    product_type: 'fresh',
-    current_price: 12000,
-    original_price: 18000,
-    discount_percentage: 33,
-    stock: 25,
+    stock_quantity: 8,
+    category: 'grains',
+    expiry_date: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000).toISOString(),
   },
 ];
 
 export default function HomePage() {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
   const itemsPerPage = 6;
-  const totalPages = Math.ceil(mockProducts.length / itemsPerPage);
 
-  const paginatedProducts = mockProducts.slice(
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      console.log('[HomePage] Fetching products from /products/all...');
+      const response = await productService.getAll();
+      console.log('[HomePage] Response:', response);
+      // API returns { total, offset, limit, products: [...] }
+      const productList = response.data?.products || response.data || [];
+      console.log('[HomePage] Product list:', productList);
+      
+      if (Array.isArray(productList) && productList.length > 0) {
+        setProducts(productList);
+        setError(null);
+      } else {
+        console.log('[HomePage] No products, using fallback');
+        setProducts(FALLBACK_PRODUCTS);
+        setError(null);
+      }
+    } catch (err) {
+      console.error('[HomePage] Error:', err);
+      console.error('[HomePage] Error response:', err.response?.data);
+      console.error('[HomePage] Error message:', err.message);
+      console.log('[HomePage] Using fallback products due to error');
+      setProducts(FALLBACK_PRODUCTS);
+      setError('API không khả dụng, hiển thị sản phẩm mẫu');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const totalPages = Math.ceil(products.length / itemsPerPage);
+  const paginatedProducts = products.slice(
     (page - 1) * itemsPerPage,
     page * itemsPerPage
   );
@@ -119,32 +124,48 @@ export default function HomePage() {
             ⚡ Flash Sale Ngay Bây Giờ
           </Typography>
 
-          <Grid container spacing={2}>
-            {paginatedProducts.map((product) => (
-              <Grid item xs={12} sm={6} md={4} key={product.id}>
-                <ProductCard
-                  product={product}
-                  onAddToCart={handleAddToCart}
-                />
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+              <CircularProgress />
+            </Box>
+          ) : error ? (
+            <Typography color="error" sx={{ textAlign: 'center', py: 4 }}>
+              {error}
+            </Typography>
+          ) : products.length === 0 ? (
+            <Typography sx={{ textAlign: 'center', py: 4, color: '#666' }}>
+              Không có sản phẩm nào
+            </Typography>
+          ) : (
+            <>
+              <Grid container spacing={2}>
+                {paginatedProducts.map((product) => (
+                  <Grid item xs={12} sm={6} md={4} key={product.id}>
+                    <ProductCard
+                      product={product}
+                      onAddToCart={handleAddToCart}
+                    />
+                  </Grid>
+                ))}
               </Grid>
-            ))}
-          </Grid>
 
-          {/* Pagination */}
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-            <Pagination
-              count={totalPages}
-              page={page}
-              onChange={(e, value) => setPage(value)}
-              color="primary"
-              sx={{
-                '& .MuiPaginationItem-root': {
-                  borderColor: '#4CAF50',
-                  color: '#4CAF50',
-                },
-              }}
-            />
-          </Box>
+              {/* Pagination */}
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+                <Pagination
+                  count={totalPages}
+                  page={page}
+                  onChange={(e, value) => setPage(value)}
+                  color="primary"
+                  sx={{
+                    '& .MuiPaginationItem-root': {
+                      borderColor: '#4CAF50',
+                      color: '#4CAF50',
+                    },
+                  }}
+                />
+              </Box>
+            </>
+          )}
         </Box>
       </Container>
     </Box>

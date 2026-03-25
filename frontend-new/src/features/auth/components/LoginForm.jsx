@@ -50,18 +50,28 @@ export default function LoginForm() {
 
     setLoading(true);
     try {
+      console.log('[LoginForm] Attempting login with:', { email });
       const response = await authService.login(email, password);
-      const { token } = response.data;
+      console.log('[LoginForm] Login response:', response);
+      const { token, user } = response.data;
 
-      // Store token
+      // Store token và user info
       localStorage.setItem('token', token);
+      localStorage.setItem('userType', user.userType);
+      localStorage.setItem('userId', user.id);
       if (rememberMe) {
         localStorage.setItem('rememberEmail', email);
       }
 
+      console.log('[LoginForm] Auth data saved, dispatching authChange event');
+      // Dispatch custom event để Header cập nhật
+      window.dispatchEvent(new CustomEvent('authChange', { detail: { isLoggedIn: true, userType: user.userType } }));
+
       // Redirect to home
       navigate('/');
     } catch (err) {
+      console.error('[LoginForm] Error:', err);
+      console.error('[LoginForm] Error response:', err.response?.data);
       setError(err.response?.data?.message || 'Đăng nhập thất bại. Vui lòng thử lại.');
     } finally {
       setLoading(false);

@@ -6,8 +6,14 @@ export default function ProductCard({ product, onAddToCart }) {
   const [isFavorited, setIsFavorited] = useState(false);
   const [quantity, setQuantity] = useState(1);
 
-  const discountPercentage = product.discount_percentage || 10;
-  const daysToExpiry = Math.ceil(Math.random() * 30); // Mock data
+  // Calculate discount percentage
+  const discountPercentage = product.discount_percentage || 
+    Math.round(((product.original_price - product.current_price) / product.original_price) * 100);
+  
+  // Calculate days to expiry
+  const expiryDate = new Date(product.expiry_date);
+  const today = new Date();
+  const daysToExpiry = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
 
   return (
     <Card
@@ -29,7 +35,7 @@ export default function ProductCard({ product, onAddToCart }) {
         <CardMedia
           component="img"
           height="200"
-          image={product.image || 'https://via.placeholder.com/280x200?text=' + product.name}
+          image={product.image_url || 'https://via.placeholder.com/280x200?text=' + product.name}
           alt={product.name}
           sx={{ objectFit: 'cover' }}
         />
@@ -130,7 +136,7 @@ export default function ProductCard({ product, onAddToCart }) {
 
         {/* Stock */}
         <Typography variant="caption" sx={{ color: '#FF9800', fontWeight: 600 }}>
-          Còn {product.stock || 12} sản phẩm
+          Còn {product.stock_quantity || 0} sản phẩm
         </Typography>
       </CardContent>
 

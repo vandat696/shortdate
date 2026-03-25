@@ -79,10 +79,19 @@ export default function RegisterForm() {
         formData.password,
         formData.userType
       );
-      const { token } = response.data;
+      const { user } = response.data;
 
-      // Store token
+      // Store token và user info (register response may or may not have token)
+      // Login automatically after register
+      const loginResponse = await authService.login(formData.email, formData.password);
+      const { token } = loginResponse.data;
+      
       localStorage.setItem('token', token);
+      localStorage.setItem('userType', formData.userType);
+      localStorage.setItem('userId', user.id);
+
+      // Dispatch custom event để Header cập nhật
+      window.dispatchEvent(new CustomEvent('authChange', { detail: { isLoggedIn: true, userType: formData.userType } }));
 
       // Redirect to home
       navigate('/');

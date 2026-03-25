@@ -2,12 +2,16 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import authRoutes from './src/routes/auth.js';
+import productRoutes from './src/routes/products.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:5174', 'http://localhost:3000', 'http://127.0.0.1:5174'],
+  credentials: true
+}));
 app.use(express.json());
 
 // Health check endpoint
@@ -17,7 +21,7 @@ app.get('/api/health', (req, res) => {
 
 // Routes
 app.use('/api/auth', authRoutes);
-// app.use('/api/products', require('./src/routes/products'));
+app.use('/api/products', productRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

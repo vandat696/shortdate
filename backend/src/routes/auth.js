@@ -11,5 +11,7 @@ router.post('/verify-email', authController.verifyEmail);
 
 // Protected routes (cần token)
 router.get('/profile', authMiddleware, authController.getProfile);
+router.put('/profile', authMiddleware, authController.updateProfile);
+router.put('/supplier-profile', authMiddleware, authController.updateSupplierProfile);
 
 export default router;
