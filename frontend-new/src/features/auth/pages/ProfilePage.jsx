@@ -9,24 +9,32 @@ import {
   Alert,
   CircularProgress,
   Container,
-  Tabs,
-  Tab,
-  Grid
+  Grid,
+  IconButton,
+  Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import api from '../../../services/api';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
+import api, { getImageUrl } from '../../../services/api';
+import axios from 'axios';
 
-function TabPanel({ children, value, index }) {
-  return value === index ? <Box sx={{ pt: 2 }}>{children}</Box> : null;
-}
 
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const [tabValue, setTabValue] = useState(0);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const userType = localStorage.getItem('userType');
+  const token = localStorage.getItem('token');
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   const [personalData, setPersonalData] = useState({
     first_name: '',
@@ -36,18 +44,36 @@ export default function ProfilePage() {
     avatar_url: ''
   });
 
+  // Store Information State (for suppliers)
   const [supplierData, setSupplierData] = useState({
     company_name: '',
     tax_id: '',
     warehouse_address: '',
     contact_phone: '',
-    contact_email: '',
-    description: '',
-    banner_url: ''
+    contact_email: ''
   });
+  const [savingSupplier, setSavingSupplier] = useState(false);
+
+  // Address Management State
+  const [addresses, setAddresses] = useState([]);
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [editingAddress, setEditingAddress] = useState(null);
+  const [addressFormData, setAddressFormData] = useState({
+    label: '',
+    full_name: '',
+    phone_number: '',
+    street_address: '',
+    ward: '',
+    district: '',
+    city: '',
+    postal_code: '',
+    is_default: false,
+  });
+  const [loadingAddresses, setLoadingAddresses] = useState(false);
 
   useEffect(() => {
     fetchProfile();
+    fetchAddresses();
   }, []);
 
   const fetchProfile = async () => {
@@ -55,6 +81,7 @@ export default function ProfilePage() {
       setLoading(true);
       const response = await api.get('/auth/profile');
       const user = response.data.user;
+      const supplierDetails = response.data.supplier_details;
 
       setPersonalData({
         first_name: user.first_name || '',
@@ -64,17 +91,14 @@ export default function ProfilePage() {
         avatar_url: user.avatar_url || ''
       });
 
-      // Nếu là Supplier, lấy thêm supplier info
-      if (userType === 'supplier' && response.data.supplier_details) {
-        const supplier = response.data.supplier_details;
+      // Load supplier details if available
+      if (supplierDetails) {
         setSupplierData({
-          company_name: supplier.company_name || '',
-          tax_id: supplier.tax_id || '',
-          warehouse_address: supplier.warehouse_address || '',
-          contact_phone: supplier.contact_phone || '',
-          contact_email: supplier.contact_email || '',
-          description: supplier.description || '',
-          banner_url: supplier.banner_url || ''
+          company_name: supplierDetails.company_name || '',
+          tax_id: supplierDetails.tax_id || '',
+          warehouse_address: supplierDetails.warehouse_address || '',
+          contact_phone: supplierDetails.contact_phone || '',
+          contact_email: supplierDetails.contact_email || ''
         });
       }
     } catch (err) {
@@ -87,14 +111,117 @@ export default function ProfilePage() {
     }
   };
 
+  const fetchAddresses = async () => {
+    try {
+      setLoadingAddresses(true);
+      const response = await axios.get(`${API_BASE_URL}/addresses`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setAddresses(response.data);
+    } catch (err) {
+      console.error('Error fetching addresses:', err);
+    } finally {
+      setLoadingAddresses(false);
+    }
+  };
+
+  const handleAddressFormChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setAddressFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  const handleAddressSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (editingAddress) {
+        await axios.put(`${API_BASE_URL}/addresses/${editingAddress.id}`, addressFormData, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setMessage({
+          type: 'success',
+          text: 'Cập nhật địa chỉ thành công'
+        });
+      } else {
+        await axios.post(`${API_BASE_URL}/addresses`, addressFormData, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setMessage({
+          type: 'success',
+          text: 'Thêm địa chỉ mới thành công'
+        });
+      }
+      resetAddressForm();
+      fetchAddresses();
+    } catch (err) {
+      setMessage({
+        type: 'error',
+        text: err.response?.data?.error || 'Lỗi khi lưu địa chỉ'
+      });
+    }
+  };
+
+  const handleEditAddress = (address) => {
+    setEditingAddress(address);
+    setAddressFormData(address);
+    setShowAddressForm(true);
+  };
+
+  const handleDeleteAddress = async (addressId) => {
+    if (!window.confirm('Bạn chắc chắn muốn xóa địa chỉ này?')) return;
+    
+    try {
+      await axios.delete(`${API_BASE_URL}/addresses/${addressId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setMessage({
+        type: 'success',
+        text: 'Xóa địa chỉ thành công'
+      });
+      fetchAddresses();
+    } catch (err) {
+      setMessage({
+        type: 'error',
+        text: 'Lỗi khi xóa địa chỉ'
+      });
+    }
+  };
+
+  const handleSetDefault = async (addressId) => {
+    try {
+      await axios.patch(`${API_BASE_URL}/addresses/${addressId}/default`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      fetchAddresses();
+    } catch (err) {
+      setMessage({
+        type: 'error',
+        text: 'Lỗi khi cập nhật địa chỉ mặc định'
+      });
+    }
+  };
+
+  const resetAddressForm = () => {
+    setAddressFormData({
+      label: '',
+      full_name: '',
+      phone_number: '',
+      street_address: '',
+      ward: '',
+      district: '',
+      city: '',
+      postal_code: '',
+      is_default: false,
+    });
+    setEditingAddress(null);
+    setShowAddressForm(false);
+  };
+
   const handlePersonalChange = (e) => {
     const { name, value } = e.target;
     setPersonalData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSupplierChange = (e) => {
-    const { name, value } = e.target;
-    setSupplierData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSavePersonal = async () => {
@@ -115,9 +242,14 @@ export default function ProfilePage() {
     }
   };
 
+  const handleSupplierChange = (e) => {
+    const { name, value } = e.target;
+    setSupplierData((prev) => ({ ...prev, [name]: value }));
+  };
+
   const handleSaveSupplier = async () => {
     try {
-      setSaving(true);
+      setSavingSupplier(true);
       await api.put('/auth/supplier-profile', supplierData);
       setMessage({
         type: 'success',
@@ -126,10 +258,10 @@ export default function ProfilePage() {
     } catch (err) {
       setMessage({
         type: 'error',
-        text: err.response?.data?.error || 'Lỗi khi cập nhật'
+        text: err.response?.data?.error || 'Lỗi khi cập nhật thông tin cửa hàng'
       });
     } finally {
-      setSaving(false);
+      setSavingSupplier(false);
     }
   };
 
@@ -145,7 +277,7 @@ export default function ProfilePage() {
     <Container maxWidth="md" sx={{ py: 3 }}>
       <Box sx={{ mb: 3 }}>
         <Typography variant="h4" sx={{ fontWeight: 700 }}>
-          Tài Khoản Của Tôi
+          Trang cá nhân
         </Typography>
       </Box>
 
@@ -155,15 +287,13 @@ export default function ProfilePage() {
         </Alert>
       )}
 
-      <Card>
-        <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)}>
-          <Tab label="Thông tin cá nhân" />
-          {userType === 'supplier' && <Tab label="Thông tin cửa hàng" />}
-        </Tabs>
-
+      <Card sx={{ backgroundColor: 'transparent', boxShadow: 'none' }}>
         <CardContent>
-          {/* Tab: Thông Tin Cá Nhân */}
-          <TabPanel value={tabValue} index={0}>
+          {/* Thông Tin Cá Nhân */}
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="h5" sx={{ fontWeight: 700, mb: 3, color: '#181D17' }}>
+              Thông tin cá nhân
+            </Typography>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
                 <TextField
@@ -185,7 +315,7 @@ export default function ProfilePage() {
                 />
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
                   label="Email*"
@@ -195,7 +325,7 @@ export default function ProfilePage() {
                 />
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
                   label="Số điện thoại"
@@ -220,32 +350,165 @@ export default function ProfilePage() {
                 <Grid item xs={12}>
                   <Box
                     component="img"
-                    src={personalData.avatar_url}
+                    src={getImageUrl(personalData.avatar_url)}
                     alt="Avatar preview"
-                    sx={{ maxWidth: '200px', borderRadius: '8px' }}
+                    sx={{ maxWidth: '150px', borderRadius: '8px' }}
                   />
                 </Grid>
               )}
-
-              <Grid item xs={12}>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  disabled={saving}
-                  onClick={handleSavePersonal}
-                  fullWidth
-                >
-                  {saving ? <CircularProgress size={24} /> : 'Lưu thông tin cá nhân'}
-                </Button>
-              </Grid>
             </Grid>
-          </TabPanel>
+            
+            <Button
+              variant="contained"
+              fullWidth
+              disabled={saving}
+              onClick={handleSavePersonal}
+              sx={{
+                mt: 3,
+                backgroundColor: '#0D631B',
+                color: '#FFFFFF',
+                '&:hover': { backgroundColor: '#0B5717' },
+                '&:disabled': { backgroundColor: '#0D631B', opacity: 0.6, color: '#FFFFFF' },
+                textTransform: 'none',
+                fontSize: '14px',
+                fontWeight: 600,
+                py: 2,
+                borderRadius: '8px'
+              }}
+            >
+              {saving ? <CircularProgress size={20} sx={{ mr: 1, color: '#FFFFFF' }} /> : 'Lưu thông tin'}
+            </Button>
+          </Box>
 
-          {/* Tab: Thông Tin Cửa Hàng (Supplier) */}
+          {/* Divider */}
+          <Box sx={{ borderTop: '1px solid #BFCABA', my: 4 }} />
+
+          {/* Địa Chỉ Giao Hàng */}
+          <Box>
+            <Typography variant="h5" sx={{ fontWeight: 700, mb: 3, color: '#181D17' }}>
+              Địa chỉ giao hàng
+            </Typography>
+
+            {loadingAddresses ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+                <CircularProgress />
+              </Box>
+            ) : addresses.length === 0 ? (
+              <Typography sx={{ textAlign: 'center', py: 3, color: '#707A6C' }}>
+                Bạn chưa có địa chỉ nào. Vui lòng thêm một địa chỉ mới.
+              </Typography>
+            ) : (
+              <Grid container spacing={2} sx={{ mb: 2 }}>
+                {addresses.map((address) => (
+                  <Grid item xs={12} key={address.id}>
+                    <Card
+                      sx={{
+                        backgroundColor: 'transparent',
+                        border: address.is_default ? '2px solid #0D631B' : '1px solid #BFCABA',
+                        borderRadius: '12px',
+                        transition: 'all 0.2s',
+                        '&:hover': {
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                        },
+                      }}
+                    >
+                      <CardContent>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', mb: 1.5 }}>
+                          <Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                              <Typography sx={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: 16, color: '#181D17' }}>
+                                {address.label}
+                              </Typography>
+                              {address.is_default && (
+                                <Chip label="Mặc định" size="small" sx={{ backgroundColor: '#0D631B', color: '#FFFFFF' }} />
+                              )}
+                            </Box>
+                            <Typography sx={{ fontFamily: 'Inter', fontSize: 14, color: '#40493D', mb: 0.5 }}>
+                              👤 {address.full_name} • 📞 {address.phone_number}
+                            </Typography>
+                            <Typography sx={{ fontFamily: 'Inter', fontSize: 12, color: '#40493D', mb: 0.3 }}>
+                              {address.street_address}
+                            </Typography>
+                            <Typography sx={{ fontFamily: 'Inter', fontSize: 12, color: '#40493D' }}>
+                              {address.ward && `${address.ward}, `}
+                              {address.district}, {address.city} {address.postal_code && `- ${address.postal_code}`}
+                            </Typography>
+                          </Box>
+                          <Box sx={{ display: 'flex', gap: 0.5 }}>
+                            <IconButton
+                              size="small"
+                              onClick={() => handleEditAddress(address)}
+                              title="Chỉnh sửa"
+                              sx={{ color: '#707A6C' }}
+                            >
+                              <EditIcon fontSize="small" />
+                            </IconButton>
+                            <IconButton
+                              size="small"
+                              onClick={() => handleDeleteAddress(address.id)}
+                              title="Xóa"
+                              sx={{ color: '#964900' }}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                            {!address.is_default && (
+                              <IconButton
+                                size="small"
+                                onClick={() => handleSetDefault(address.id)}
+                                title="Đặt làm mặc định"
+                                sx={{ color: '#707A6C' }}
+                              >
+                                <RadioButtonUncheckedIcon fontSize="small" />
+                              </IconButton>
+                            )}
+                            {address.is_default && (
+                              <IconButton size="small" sx={{ color: '#0D631B' }}>
+                                <CheckCircleIcon fontSize="small" />
+                              </IconButton>
+                            )}
+                          </Box>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            )}
+
+            <Button
+              variant="contained"
+              fullWidth
+              onClick={() => {
+                resetAddressForm();
+                setShowAddressForm(true);
+              }}
+              sx={{
+                backgroundColor: '#964900',
+                color: '#FFFFFF',
+                '&:hover': { backgroundColor: '#7A3700' },
+                textTransform: 'none',
+                fontSize: '14px',
+                fontWeight: 600,
+                py: 2,
+                borderRadius: '8px',
+                mt: 2
+              }}
+            >
+              Thêm địa chỉ
+            </Button>
+          </Box>
+
+          {/* Divider */}
+          {userType === 'supplier' && <Box sx={{ borderTop: '1px solid #BFCABA', my: 4 }} />}
+
+          {/* Thông Tin Cửa Hàng (chỉ hiển thị cho suppliers) */}
           {userType === 'supplier' && (
-            <TabPanel value={tabValue} index={1}>
+            <Box>
+              <Typography variant="h5" sx={{ fontWeight: 700, mb: 3, color: '#181D17' }}>
+                Thông tin cửa hàng
+              </Typography>
               <Grid container spacing={2}>
-                <Grid item xs={12}>
+                <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
                     label="Tên cửa hàng*"
@@ -255,10 +518,10 @@ export default function ProfilePage() {
                   />
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
-                    label="Số giấy phép kinh doanh / Mã số thuế"
+                    label="Mã số thuế*"
                     name="tax_id"
                     value={supplierData.tax_id}
                     onChange={handleSupplierChange}
@@ -268,7 +531,7 @@ export default function ProfilePage() {
                 <Grid item xs={12}>
                   <TextField
                     fullWidth
-                    label="Địa chỉ kho hàng"
+                    label="Địa chỉ kho hàng*"
                     name="warehouse_address"
                     value={supplierData.warehouse_address}
                     onChange={handleSupplierChange}
@@ -292,61 +555,159 @@ export default function ProfilePage() {
                     fullWidth
                     label="Email liên hệ"
                     name="contact_email"
+                    type="email"
                     value={supplierData.contact_email}
                     onChange={handleSupplierChange}
                   />
                 </Grid>
-
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Mô tả về cửa hàng"
-                    name="description"
-                    value={supplierData.description}
-                    onChange={handleSupplierChange}
-                    multiline
-                    rows={3}
-                  />
-                </Grid>
-
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="URL hình ảnh đại diện cửa hàng"
-                    name="banner_url"
-                    value={supplierData.banner_url}
-                    onChange={handleSupplierChange}
-                    helperText="Nhập đường link ảnh từ Internet"
-                  />
-                </Grid>
-
-                {supplierData.banner_url && (
-                  <Grid item xs={12}>
-                    <Box
-                      component="img"
-                      src={supplierData.banner_url}
-                      alt="Banner preview"
-                      sx={{ maxWidth: '300px', borderRadius: '8px', height: 'auto' }}
-                    />
-                  </Grid>
-                )}
-
-                <Grid item xs={12}>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    disabled={saving}
-                    onClick={handleSaveSupplier}
-                    fullWidth
-                  >
-                    {saving ? <CircularProgress size={24} /> : 'Lưu thông tin cửa hàng'}
-                  </Button>
-                </Grid>
               </Grid>
-            </TabPanel>
+
+              <Button
+                variant="contained"
+                fullWidth
+                disabled={savingSupplier}
+                onClick={handleSaveSupplier}
+                sx={{
+                  mt: 3,
+                  backgroundColor: '#0D631B',
+                  color: '#FFFFFF',
+                  '&:hover': { backgroundColor: '#0B5717' },
+                  '&:disabled': { backgroundColor: '#0D631B', opacity: 0.6, color: '#FFFFFF' },
+                  textTransform: 'none',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  py: 2,
+                  borderRadius: '8px'
+                }}
+              >
+                {savingSupplier ? <CircularProgress size={20} sx={{ mr: 1, color: '#FFFFFF' }} /> : 'Lưu thông tin cửa hàng'}
+              </Button>
+            </Box>
           )}
         </CardContent>
       </Card>
+
+      {/* Address Form Dialog */}
+      <Dialog
+        open={showAddressForm}
+        onClose={resetAddressForm}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: { borderRadius: '12px' }
+        }}
+      >
+        <DialogTitle sx={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: 18, color: '#181D17' }}>
+          {editingAddress ? '✏️ Chỉnh Sửa Địa Chỉ' : '➕ Thêm Địa Chỉ Mới'}
+        </DialogTitle>
+        <DialogContent sx={{ py: 2 }}>
+          <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
+            <TextField
+              label="Nhãn địa chỉ (vd: Nhà, Văn phòng)*"
+              name="label"
+              value={addressFormData.label}
+              onChange={handleAddressFormChange}
+              fullWidth
+              size="small"
+              required
+            />
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+              <TextField
+                label="Họ và tên*"
+                name="full_name"
+                value={addressFormData.full_name}
+                onChange={handleAddressFormChange}
+                size="small"
+                required
+              />
+              <TextField
+                label="Số điện thoại*"
+                name="phone_number"
+                value={addressFormData.phone_number}
+                onChange={handleAddressFormChange}
+                size="small"
+                required
+              />
+            </Box>
+            <TextField
+              label="Địa chỉ chi tiết*"
+              name="street_address"
+              value={addressFormData.street_address}
+              onChange={handleAddressFormChange}
+              fullWidth
+              size="small"
+              required
+              multiline
+              rows={2}
+            />
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+              <TextField
+                label="Phường/Xã"
+                name="ward"
+                value={addressFormData.ward}
+                onChange={handleAddressFormChange}
+                size="small"
+              />
+              <TextField
+                label="Quận/Huyện*"
+                name="district"
+                value={addressFormData.district}
+                onChange={handleAddressFormChange}
+                size="small"
+                required
+              />
+            </Box>
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+              <TextField
+                label="Tỉnh/Thành phố*"
+                name="city"
+                value={addressFormData.city}
+                onChange={handleAddressFormChange}
+                size="small"
+                required
+              />
+              <TextField
+                label="Mã bưu điện"
+                name="postal_code"
+                value={addressFormData.postal_code}
+                onChange={handleAddressFormChange}
+                size="small"
+              />
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <input
+                type="checkbox"
+                name="is_default"
+                checked={addressFormData.is_default}
+                onChange={handleAddressFormChange}
+                id="is_default_checkbox"
+              />
+              <label htmlFor="is_default_checkbox" style={{ cursor: 'pointer', fontSize: '14px', color: '#40493D' }}>
+                Đặt làm địa chỉ mặc định
+              </label>
+            </Box>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button
+            onClick={resetAddressForm}
+            sx={{ color: '#707A6C', textTransform: 'none' }}
+          >
+            Hủy
+          </Button>
+          <Button
+            onClick={handleAddressSubmit}
+            variant="contained"
+            sx={{
+              backgroundColor: '#0D631B',
+              '&:hover': { backgroundColor: '#0a4d15' },
+              textTransform: 'none'
+            }}
+          >
+            {editingAddress ? 'Cập Nhật' : 'Thêm Địa Chỉ'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 }

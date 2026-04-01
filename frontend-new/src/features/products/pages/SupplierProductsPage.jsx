@@ -145,7 +145,7 @@ export default function SupplierProductsPage() {
     <Container maxWidth="lg" sx={{ py: 3 }}>
       <Box sx={{ mb: 3 }}>
         <Typography variant="h4" sx={{ mb: 2 }}>
-          Quản Lý Sản Phẩm
+          Quản lý sản phẩm
         </Typography>
         <Button
           variant="contained"
@@ -284,7 +284,7 @@ export default function SupplierProductsPage() {
                               setOpenInventoryDialog(true);
                             }}
                           >
-                            Stock
+                            Thay đổi lượng tồn kho
                           </Button>
                           <Button
                             size="small"

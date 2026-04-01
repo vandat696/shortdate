@@ -407,6 +407,7 @@ curl -H "Authorization: Bearer YOUR_TOKEN_HERE" \
 | `categories` | Product categories | id, name (dry_product, fresh_product) |
 | `price_history` | Price tracking | product_id, price, date |
 | `carts` | Shopping carts | id, user_id, created_at |
+| `wishlists` | User wishlists | id, user_id, product_id, added_at |
 | `orders` | Orders | id, user_id, total_price, status, created_at |
 | `order_items` | Order items | id, order_id, product_id, quantity, price |
 | `reviews` | Product reviews | id, product_id, user_id, rating, comment |
@@ -414,5 +415,134 @@ curl -H "Authorization: Bearer YOUR_TOKEN_HERE" \
 
 ---
 
-**Last Updated**: 25/03/2026  
+## 🛒 Cart Endpoints
+
+### 1. Get User's Cart
+```
+GET /api/cart
+Authorization: Bearer {token}
+```
+
+### 2. Add to Cart
+```
+POST /api/cart/items
+Content-Type: application/json
+
+{
+  "product_id": 5,
+  "quantity": 2
+}
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "itemsCount": 5,
+  "message": "Đã thêm vào giỏ hàng"
+}
+```
+
+### 3. Update Cart Item
+```
+PATCH /api/cart/items/:productId
+Authorization: Bearer {token}
+
+{
+  "quantity": 3
+}
+```
+
+### 4. Remove from Cart
+```
+DELETE /api/cart/items/:productId
+Authorization: Bearer {token}
+```
+
+### 5. Clear Cart
+```
+DELETE /api/cart/clear
+Authorization: Bearer {token}
+```
+
+### 6. Merge Cart on Login
+```
+POST /api/cart/merge
+Authorization: Bearer {token}
+
+{
+  "items": [
+    { "product_id": 5, "quantity": 2, "unit_price": 7.99 }
+  ]
+}
+```
+
+---
+
+## ❤️ Wishlist Endpoints
+
+### 1. Get User's Wishlist
+```
+GET /api/wishlist
+Authorization: Bearer {token}
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "items": [
+    {
+      "id": 1,
+      "product_id": 5,
+      "added_at": "2026-04-01T10:00:00Z",
+      "product": {
+        "id": 5,
+        "name": "Organic Greek Yogurt",
+        "current_price": 4.99
+      }
+    }
+  ],
+  "count": 1
+}
+```
+
+### 2. Add to Wishlist
+```
+POST /api/wishlist/:productId/wishlist
+Authorization: Bearer {token}
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "message": "Đã thêm vào wishlist",
+  "isNew": true
+}
+```
+
+### 3. Remove from Wishlist
+```
+DELETE /api/wishlist/:productId/wishlist
+Authorization: Bearer {token}
+```
+
+### 4. Check Wishlist Status
+```
+GET /api/wishlist/:productId/wishlist/check
+Authorization: Bearer {token}
+```
+
+**Response**:
+```json
+{
+  "inWishlist": true,
+  "wishlistId": 1
+}
+```
+
+---
+
+**Last Updated**: 01/04/2026  
 **Maintained by**: ShortDate Dev Team

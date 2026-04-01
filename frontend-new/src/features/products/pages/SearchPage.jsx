@@ -121,22 +121,22 @@ export default function SearchPage() {
     <Box sx={{ py: 3 }}>
       <Container maxWidth="lg">
         <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>
-          Showing results{q ? ` for “${q}”` : ''}
+          Kết quả tìm kiếm{q ? ` cho "${q}"` : ''}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          HSD Remaining • Discount • Product Type • Price Range • Sort
+          Hết Hạn • Giảm Giá • Loại Sản Phẩm • Mức Giá • Sắp Xếp
         </Typography>
 
         <Grid container spacing={2}>
           <Grid item xs={12} md={3}>
             <Box sx={{ p: 2, bgcolor: 'background.paper', borderRadius: 2 }}>
-              <Typography sx={{ fontWeight: 800, mb: 1 }}>HSD Remaining</Typography>
+              <Typography sx={{ fontWeight: 800, mb: 1 }}>HSD</Typography>
               <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 2 }}>
                 {[
-                  { id: 'today', label: 'Today' },
-                  { id: 'lt3', label: '< 3 days' },
-                  { id: 'lt7', label: '< 7 days' },
-                  { id: 'lt30', label: '< 30 days' },
+                  { id: 'today', label: 'Hôm Nay' },
+                  { id: 'lt3', label: '< 3 ngày' },
+                  { id: 'lt7', label: '< 7 ngày' },
+                  { id: 'lt30', label: '< 30 ngày' },
                 ].map((x) => (
                   <Chip
                     key={x.id}
@@ -148,12 +148,12 @@ export default function SearchPage() {
                 ))}
               </Stack>
 
-              <Typography sx={{ fontWeight: 800, mb: 1 }}>Discount Range</Typography>
+              <Typography sx={{ fontWeight: 800, mb: 1 }}>Mức Giảm Giá</Typography>
               <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 2 }}>
                 {[
-                  { id: '30-50', label: '30–50% Off' },
-                  { id: '50-80', label: '50–80% Off' },
-                  { id: '80+', label: 'Over 80% Off' },
+                  { id: '30-50', label: 'Giảm 30-50%' },
+                  { id: '50-80', label: 'Giảm 50-80%' },
+                  { id: '80+', label: 'Giảm trên 80%' },
                 ].map((x) => (
                   <Chip
                     key={x.id}
@@ -165,22 +165,22 @@ export default function SearchPage() {
                 ))}
               </Stack>
 
-              <Typography sx={{ fontWeight: 800, mb: 1 }}>Product Type</Typography>
+              <Typography sx={{ fontWeight: 800, mb: 1 }}>Loại Sản Phẩm</Typography>
               <FormControl fullWidth size="small" sx={{ mb: 2 }}>
-                <InputLabel id="product-type-label">Type</InputLabel>
+                <InputLabel id="product-type-label">Loại</InputLabel>
                 <Select
                   labelId="product-type-label"
-                  label="Type"
+                  label="Loại"
                   value={productType}
                   onChange={(e) => setProductType(e.target.value)}
                 >
-                  <MenuItem value="">All</MenuItem>
-                  <MenuItem value="fresh_product">Local Fresh</MenuItem>
-                  <MenuItem value="dry_product">Dry (National)</MenuItem>
+                  <MenuItem value="">Tất Cả</MenuItem>
+                  <MenuItem value="fresh_product">Đồ tươi</MenuItem>
+                  <MenuItem value="dry_product">Đồ khô</MenuItem>
                 </Select>
               </FormControl>
 
-              <Typography sx={{ fontWeight: 800, mb: 1 }}>Price Range</Typography>
+              <Typography sx={{ fontWeight: 800, mb: 1 }}>Mức Giá</Typography>
               <Box sx={{ px: 1 }}>
                 <Slider
                   value={priceRange}
@@ -197,24 +197,24 @@ export default function SearchPage() {
 
               <Divider sx={{ my: 2 }} />
 
-              <Typography sx={{ fontWeight: 800, mb: 1 }}>Sort by</Typography>
+              <Typography sx={{ fontWeight: 800, mb: 1 }}>Sắp Xếp Theo</Typography>
               <FormControl fullWidth size="small" sx={{ mb: 2 }}>
-                <InputLabel id="sort-label">Sort</InputLabel>
+                <InputLabel id="sort-label">Sắp Xếp</InputLabel>
                 <Select
                   labelId="sort-label"
-                  label="Sort"
+                  label="Sắp Xếp"
                   value={sort}
                   onChange={(e) => setSort(e.target.value)}
                 >
-                  <MenuItem value="nearest_expiry">Nearest Expiry</MenuItem>
-                  <MenuItem value="highest_discount">Highest Discount</MenuItem>
-                  <MenuItem value="lowest_price">Lowest Price</MenuItem>
-                  <MenuItem value="newest">Newest</MenuItem>
+                  <MenuItem value="nearest_expiry">HSD</MenuItem>
+                  <MenuItem value="highest_discount">Ưu đãi</MenuItem>
+                  <MenuItem value="lowest_price">Giá thấp nhất</MenuItem>
+                  <MenuItem value="newest">Mới nhất</MenuItem>
                 </Select>
               </FormControl>
 
               <Button fullWidth variant="contained" onClick={applyToUrl}>
-                Apply
+                Áp Dụng
               </Button>
             </Box>
           </Grid>
@@ -238,9 +238,9 @@ export default function SearchPage() {
                 {products.length === 0 && (
                   <Grid item xs={12}>
                     <Box sx={{ p: 4, textAlign: 'center', bgcolor: 'background.paper', borderRadius: 2 }}>
-                      <Typography sx={{ fontWeight: 700 }}>No results</Typography>
+                      <Typography sx={{ fontWeight: 700 }}>Không có kết quả</Typography>
                       <Typography variant="body2" color="text.secondary">
-                        Try adjusting filters.
+                        Hãy thử điều chỉnh các bộ lọc.
                       </Typography>
                     </Box>
                   </Grid>

@@ -24,8 +24,14 @@ export const generateToken = (userId, userType) => {
 // Verify JWT token
 export const verifyToken = (token) => {
   try {
-    return jwt.verify(token, process.env.JWT_SECRET);
+    const secret = process.env.JWT_SECRET;
+    console.log('[AUTH-HELPERS] Verifying token with secret:', secret ? secret.substring(0, 10) + '...' : 'UNDEFINED');
+    console.log('[AUTH-HELPERS] Token to verify:', token.substring(0, 20) + '...');
+    const verified = jwt.verify(token, secret);
+    console.log('[AUTH-HELPERS] Token verified successfully');
+    return verified;
   } catch (err) {
+    console.error('[AUTH-HELPERS] Token verification failed:', err.message);
     return null;
   }
 };

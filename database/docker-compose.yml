@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: shortdate-db
+    environment:
+      POSTGRES_DB: shortdate
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    ports:
+      - "5432:5432"
+    volumes:
+      - shortdate-db-volume:/var/lib/postgresql/data
+      - ./schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./migration_002_add_profile_columns.sql:/docker-entrypoint-initdb.d/02-migration.sql
+    networks:
+      - shortdate-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d shortdate"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command:
+      - "postgres"
+      - "-c"
+      - "log_statement=all"
+      - "-c"
+      - "log_duration=on"
+
+volumes:
+  shortdate-db-volume:
+    driver: local
+
+networks:
+  shortdate-network:
+    driver: bridge

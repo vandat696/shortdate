@@ -39,10 +39,12 @@ graph TB
         OrderModule[Order Module]
         SearchModule[Search Module]
         DeliveryModule[Delivery Module]
+        CarrierModule[Carrier Module]
         NotifModule[Notification Module]
         ReviewModule[Review Module]
         DashboardModule[Dashboard Module]
         AdModule[Ad Module]
+        AdminModule[Admin Module]
     end
 
     subgraph Data["Data Layer"]
@@ -64,10 +66,12 @@ graph TB
     API --> OrderModule
     API --> SearchModule
     API --> DeliveryModule
+    API --> CarrierModule
     API --> NotifModule
     API --> ReviewModule
     API --> DashboardModule
     API --> AdModule
+    API --> AdminModule
 
     AuthModule --> PostgreSQL
     ProductModule --> PostgreSQL
@@ -77,6 +81,8 @@ graph TB
     ReviewModule --> PostgreSQL
     DashboardModule --> PostgreSQL
     AdModule --> PostgreSQL
+    CarrierModule --> PostgreSQL
+    AdminModule --> PostgreSQL
     ProductModule --> S3
 
     OrderModule --> PaymentGW
@@ -125,6 +131,8 @@ POST /auth/refresh
 POST /auth/logout
 POST /auth/supplier/apply
 PUT  /auth/supplier/:id/approve
+POST /auth/carrier/apply
+PUT  /auth/carrier/:id/approve
 ```
 
 ### 2. Product Module
@@ -263,7 +271,7 @@ POST   /payments/callback
 
 ### 7. Delivery Module
 
-Điều phối giao hàng cho cả Fresh_Product và Dry_Product.
+Điều phối giao hàng cho cả Fresh_Product và Dry_Product. Khi Supplier bàn giao đơn hàng, hệ thống phân công Carrier phù hợp (với Fresh_Product) hoặc nhận webhook cập nhật trạng thái từ 3PL (với Dry_Product).
 
 **API chính:**
 
@@ -271,6 +279,25 @@ POST   /payments/callback
 GET  /delivery/zones/check?address=
 POST /delivery/orders/:orderId
 GET  /delivery/orders/:orderId/track
+POST /delivery/orders/:orderId/assign-carrier
+POST /delivery/webhook/3pl
+```
+
+### 8. Carrier Module
+
+Cung cấp công cụ cho Carrier nhận đơn, cập nhật trạng thái giao hàng và xem tổng quan hiệu suất.
+
+**Trách nhiệm:**
+- Hiển thị danh sách đơn hàng được phân công cho Carrier
+- Cho phép Carrier cập nhật trạng thái giao hàng kèm hình ảnh xác nhận
+- Cung cấp trang tổng quan hiệu suất Carrier
+
+**API chính:**
+
+```
+GET   /carrier/orders
+PATCH /carrier/orders/:orderId/status
+GET   /carrier/dashboard
 ```
 
 ### 8. Notification Module
@@ -284,6 +311,27 @@ Cung cấp dữ liệu phân tích cho Supplier_Dashboard bằng các query tổ
 ### 10. Ad Module & Review Module
 
 Quản lý quảng cáo nội sàn và đánh giá sản phẩm/Supplier.
+
+### 11. Admin Module
+
+Cung cấp công cụ quản trị toàn diện cho Admin: quản lý người dùng, kiểm duyệt sản phẩm, giám sát hệ thống.
+
+**Trách nhiệm:**
+- Quản lý tài khoản Buyer, Supplier, Carrier (xem, khóa/mở khóa)
+- Kiểm duyệt và khóa sản phẩm vi phạm chính sách
+- Xem audit log hệ thống
+- Xem tổng quan hoạt động toàn sàn
+
+**API chính:**
+
+```
+GET /admin/users
+PUT /admin/users/:id/lock
+GET /admin/products
+PUT /admin/products/:id/lock
+GET /admin/audit-logs
+GET /admin/dashboard
+```
 
 ---
 
@@ -299,7 +347,7 @@ erDiagram
         string email
         string phone
         string password_hash
-        enum role "buyer|supplier|admin"
+        enum role "buyer|supplier|carrier|admin"
         bool is_verified
         bool is_locked
         int failed_login_count
@@ -316,6 +364,17 @@ erDiagram
         enum status "pending|approved|rejected"
         float avg_rating
         bool excellence_badge
+        timestamp approved_at
+    }
+
+    CARRIER_PROFILE {
+        uuid id PK
+        uuid user_id FK
+        string company_name
+        string service_area
+        string contact_info
+        enum status "pending|approved|rejected"
+        float success_rate
         timestamp approved_at
     }
 
@@ -377,13 +436,15 @@ erDiagram
         uuid id PK
         string order_code UK
         uuid buyer_id FK
+        uuid carrier_id FK
         decimal subtotal
         decimal shipping_fee
         decimal total_amount
-        enum status "pending|confirmed|shipping|delivered|cancelled"
+        enum status "pending|confirmed|preparing|shipping|handed_over|delivered|cancelled"
         enum payment_method "momo|zalopay|vnpay|atm|visa|cod"
         enum payment_status "pending|paid|refunded"
         string shipping_address
+        string delivery_proof_image
         timestamp created_at
         timestamp confirmed_at
     }
@@ -449,12 +510,14 @@ erDiagram
     }
 
     USER ||--o| SUPPLIER_PROFILE : "has"
+    USER ||--o| CARRIER_PROFILE : "has"
     SUPPLIER_PROFILE ||--o{ PRODUCT : "lists"
     SUPPLIER_PROFILE ||--o{ BUNDLE : "creates"
     BUNDLE ||--o{ BUNDLE_ITEM : "contains"
     BUNDLE_ITEM }o--|| PRODUCT : "references"
     PRODUCT ||--o{ PRICE_HISTORY : "has"
     ORDER }o--|| USER : "placed_by"
+    ORDER }o--o| CARRIER_PROFILE : "assigned_to"
     ORDER ||--o{ ORDER_ITEM : "contains"
     ORDER_ITEM }o--o| PRODUCT : "references"
     ORDER_ITEM }o--o| BUNDLE : "references"
@@ -526,49 +589,49 @@ erDiagram
 
 *For any* Product có thời gian còn lại đến HSD dưới 24 giờ và Auto_Pricing_Engine đang bật, giá bán sau khi engine chạy phải không cao hơn 50% giá gốc (tức là chiết khấu ≥ 50%).
 
-**Validates: Requirements 3.2**
+**Validates: Requirements 4.2**
 
 ### Property 9: Auto_Pricing_Engine tăng chiết khấu khi tồn kho cao và thời gian cạn
 
 *For any* Product có tỷ lệ tồn kho > 80% sau khi đã qua 50% thời gian từ nhập kho đến HSD, Auto_Pricing_Engine phải tăng mức chiết khấu hiện tại thêm tối thiểu 10%.
 
-**Validates: Requirements 3.3**
+**Validates: Requirements 4.3**
 
 ### Property 10: Giá sau điều chỉnh không bao giờ thấp hơn giá sàn
 
 *For any* Product có cấu hình giá sàn tối thiểu (floor_price), sau bất kỳ lần chạy Auto_Pricing_Engine nào, giá bán kết quả phải luôn >= floor_price.
 
-**Validates: Requirements 3.4**
+**Validates: Requirements 4.4**
 
 ### Property 11: Lịch sử giá được ghi lại đầy đủ sau mỗi thay đổi
 
 *For any* thay đổi giá do Auto_Pricing_Engine thực hiện, hệ thống phải ghi một bản ghi vào bảng `price_history` chứa đủ: thời điểm thay đổi, giá cũ, giá mới và lý do thay đổi.
 
-**Validates: Requirements 3.5**
+**Validates: Requirements 4.5**
 
 ### Property 12: Product_Risk_Score luôn nằm trong khoảng [0, 100]
 
 *For any* Product được tính điểm bởi hàm `calculateRiskScore`, giá trị Product_Risk_Score trả về phải luôn nằm trong khoảng từ 0 đến 100 (bao gồm hai đầu mút).
 
-**Validates: Requirements 4.2**
+**Validates: Requirements 5.2**
 
 ### Property 13: Mapping Risk Score → mức chiết khấu đề xuất đúng ngưỡng
 
 *For any* Product, nếu Risk Score >= 70 thì chiết khấu đề xuất phải >= 40%; nếu Risk Score < 30 thì chiết khấu đề xuất phải nằm trong khoảng [10%, 20%].
 
-**Validates: Requirements 4.3, 4.4**
+**Validates: Requirements 5.3, 5.4**
 
 ### Property 14: Giá trị thực trong Bundle luôn cao hơn giá bán tối thiểu 30%
 
 *For any* Bundle được lưu thành công trong hệ thống, tổng giá trị thực của các Product trong Bundle phải luôn >= giá bán Bundle × 1.3.
 
-**Validates: Requirements 5.2, 5.4**
+**Validates: Requirements 3.2, 3.4**
 
 ### Property 15: Bundle tự động ẩn khi có Product hết hàng
 
 *For any* Bundle đang hiển thị, khi bất kỳ Product nào trong Bundle có stock_quantity về 0, Bundle đó phải chuyển sang trạng thái ẩn và không xuất hiện trong kết quả tìm kiếm.
 
-**Validates: Requirements 5.6**
+**Validates: Requirements 3.6**
 
 ### Property 16: Kết quả tìm kiếm thỏa mãn tất cả bộ lọc đã áp dụng
 
@@ -622,19 +685,37 @@ erDiagram
 
 *For any* đơn hàng, review chỉ được chấp nhận khi trạng thái đơn hàng là "delivered" và thời điểm tạo review nằm trong vòng 7 ngày kể từ ngày giao hàng thành công.
 
-**Validates: Requirements 12.1**
+**Validates: Requirements 13.1**
 
 ### Property 25: Validation nội dung đánh giá
 
 *For any* review được gửi lên, hệ thống phải từ chối nếu rating nằm ngoài khoảng [1, 5] hoặc độ dài comment nhỏ hơn 10 ký tự.
 
-**Validates: Requirements 12.2**
+**Validates: Requirements 13.2**
 
 ### Property 26: Audit log được ghi cho mọi thao tác quan trọng
 
 *For any* thao tác quan trọng (đăng nhập, thay đổi giá, tạo/hủy đơn hàng, thay đổi thông tin tài khoản), hệ thống phải ghi một bản ghi vào bảng `audit_log` chứa đủ thông tin về thao tác đó.
 
-**Validates: Requirements 13.5**
+**Validates: Requirements 15.5**
+
+### Property 27: Carrier chỉ cập nhật được đơn hàng được phân công cho mình
+
+*For any* Carrier đã xác thực, thao tác cập nhật trạng thái giao hàng phải bị từ chối nếu `carrier_id` của đơn hàng không khớp với ID của Carrier đang thực hiện yêu cầu — không có ngoại lệ.
+
+**Validates: Requirements 10.3, 10.4**
+
+### Property 28: Ảnh xác nhận bắt buộc khi Carrier cập nhật trạng thái "đã giao"
+
+*For any* yêu cầu cập nhật trạng thái đơn hàng thành "đã giao" mà không kèm hình ảnh xác nhận, hệ thống phải từ chối yêu cầu đó và trả về lỗi validation.
+
+**Validates: Requirements 10.5**
+
+### Property 29: Admin lock product → product không xuất hiện trong search results
+
+*For any* Product bị Admin khóa (trạng thái locked), Product đó phải không xuất hiện trong bất kỳ kết quả tìm kiếm hay danh sách hiển thị nào trên sàn — bất kể bộ lọc hay từ khóa tìm kiếm là gì.
+
+**Validates: Requirements 14.12**
 
 ---
 
@@ -737,12 +818,15 @@ Tránh viết quá nhiều unit test cho các trường hợp đã được bao 
 | P24: Review trong 7 ngày sau giao hàng | fast-check | Review Module |
 | P25: Validation nội dung đánh giá | fast-check | Review Module |
 | P26: Audit log đầy đủ | fast-check | Auth/Order/Pricing Module |
+| P27: Carrier chỉ cập nhật đơn được phân công | fast-check | Carrier Module |
+| P28: Ảnh xác nhận bắt buộc khi "đã giao" | fast-check | Carrier Module |
+| P29: Admin lock product ẩn khỏi search | fast-check | Search/Admin Module |
 
 ### Ví Dụ Property Test (fast-check)
 
-```typescript
+```javascript
 import fc from 'fast-check';
-import { calculatePrice } from '../modules/pricing/engine';
+import { calculatePrice } from '../modules/pricing/engine.js';
 
 // Feature: short-date, Property 10: Giá sau điều chỉnh không bao giờ thấp hơn giá sàn
 test('auto-pricing never goes below floor price', () => {
@@ -766,9 +850,9 @@ test('auto-pricing never goes below floor price', () => {
 });
 ```
 
-```typescript
+```javascript
 import fc from 'fast-check';
-import { calculateRiskScore } from '../modules/pricing/riskScore';
+import { calculateRiskScore } from '../modules/pricing/riskScore.js';
 
 // Feature: short-date, Property 12: Product_Risk_Score luôn nằm trong khoảng [0, 100]
 test('risk score always in [0, 100]', () => {

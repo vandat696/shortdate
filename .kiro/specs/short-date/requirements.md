@@ -1,4 +1,4 @@
-# Tài Liệu Yêu Cầu
+﻿# Tài Liệu Yêu Cầu
 
 ## Giới Thiệu
 
@@ -25,10 +25,11 @@ Hệ thống phục vụ hai nhóm sản phẩm chính:
 - **Product_Risk_Score**: Điểm rủi ro sản phẩm (0–100) do AI_Pricing_Module tính toán, phản ánh khả năng không bán được trước HSD.
 - **Flash_Sale**: Chương trình giảm giá sâu trong thời gian giới hạn (thường dưới 24 giờ).
 - **Supplier_Dashboard**: Bảng điều khiển dành cho Supplier để quản lý tồn kho, theo dõi hiệu suất và cấu hình Auto_Pricing_Engine.
-- **3PL**: Đơn vị vận chuyển bên thứ ba phục vụ giao hàng toàn quốc cho Dry_Product.
+- **3PL**: Carrier bên thứ ba phục vụ giao hàng toàn quốc cho Dry_Product.
 - **HSD**: Hạn sử dụng (ngày hết hạn) của sản phẩm.
 - **Order**: Đơn hàng được tạo khi Buyer xác nhận mua một hoặc nhiều Product/Bundle.
 - **Notification_Service**: Dịch vụ gửi thông báo (push, email, SMS) đến Buyer và Supplier.
+- **Carrier**: Carrier (nội thành hoặc liên tỉnh) có tài khoản riêng trên hệ thống, chịu trách nhiệm nhận và giao hàng, cập nhật trạng thái đơn hàng trong quá trình vận chuyển.
 
 ---
 
@@ -48,6 +49,7 @@ Hệ thống phục vụ hai nhóm sản phẩm chính:
 6. WHEN người dùng nhập sai mật khẩu 5 lần liên tiếp, THE ShortDate_Platform SHALL khóa tài khoản tạm thời trong 15 phút và gửi thông báo đến email đã đăng ký.
 7. THE ShortDate_Platform SHALL cho phép Supplier đăng ký tài khoản doanh nghiệp với thông tin: tên doanh nghiệp, mã số thuế, địa chỉ kho hàng, thông tin liên hệ.
 8. WHEN Supplier nộp hồ sơ đăng ký, THE Admin SHALL xét duyệt và phê duyệt hoặc từ chối trong vòng 48 giờ làm việc.
+9. THE ShortDate_Platform SHALL cho phép đăng ký tài khoản Carrier với thông tin: tên đơn vị, khu vực hoạt động, thông tin liên hệ; tài khoản Carrier phải được Admin phê duyệt trước khi sử dụng.
 
 ---
 
@@ -68,7 +70,22 @@ Hệ thống phục vụ hai nhóm sản phẩm chính:
 
 ---
 
-### Yêu Cầu 3: Auto-Pricing Engine
+### Yêu Cầu 3: Mô Hình Gói Giá (Bundle)
+
+**User Story:** Là một Buyer, tôi muốn mua thực phẩm theo gói với mức giá cố định, để tiết kiệm thời gian lựa chọn và chi phí mua sắm.
+
+#### Tiêu Chí Chấp Nhận
+
+1. THE ShortDate_Platform SHALL hỗ trợ bốn loại Bundle: Túi Mini (15.000–25.000đ), Túi Tiêu chuẩn (30.000–50.000đ), Túi Gia đình (99.000–149.000đ), Túi Premium (199.000–299.000đ).
+2. THE ShortDate_Platform SHALL đảm bảo giá trị thực của sản phẩm trong mỗi Bundle cao hơn giá bán Bundle tối thiểu 30%.
+3. WHEN Supplier tạo Bundle, THE ShortDate_Platform SHALL yêu cầu Supplier chỉ định: loại Bundle, danh sách Product trong Bundle, số lượng mỗi Product, giá bán Bundle.
+4. WHEN giá bán Bundle do Supplier nhập không thấp hơn giá trị thực tối thiểu 30%, THE ShortDate_Platform SHALL từ chối lưu và hiển thị thông báo yêu cầu điều chỉnh giá.
+5. THE ShortDate_Platform SHALL hiển thị tổng giá trị thực và mức tiết kiệm (số tiền và %) trên trang chi tiết mỗi Bundle.
+6. WHEN một Product trong Bundle hết hàng, THE ShortDate_Platform SHALL tự động ẩn Bundle đó khỏi danh sách hiển thị và thông báo cho Supplier.
+
+---
+
+### Yêu Cầu 4: Auto-Pricing Engine
 
 **User Story:** Là một Supplier, tôi muốn hệ thống tự động điều chỉnh giá sản phẩm theo thời gian còn lại đến HSD và tồn kho, để tối ưu hóa doanh thu và giảm thiểu hàng tồn.
 
@@ -84,7 +101,7 @@ Hệ thống phục vụ hai nhóm sản phẩm chính:
 
 ---
 
-### Yêu Cầu 4: AI-Powered Pricing Module
+### Yêu Cầu 5: AI-Powered Pricing Module
 
 **User Story:** Là một Supplier, tôi muốn hệ thống AI phân tích hình ảnh và dữ liệu sản phẩm để đề xuất giá tối ưu, để tôi không cần định giá thủ công cho từng sản phẩm.
 
@@ -98,21 +115,6 @@ Hệ thống phục vụ hai nhóm sản phẩm chính:
 6. THE Supplier SHALL có thể chấp nhận hoặc điều chỉnh giá đề xuất của AI_Pricing_Module trước khi niêm yết Product.
 7. THE AI_Pricing_Module SHALL cập nhật mô hình dự đoán dựa trên dữ liệu giao dịch thực tế theo chu kỳ không quá 24 giờ một lần.
 8. IF AI_Pricing_Module không thể phân tích hình ảnh do chất lượng ảnh thấp, THEN THE ShortDate_Platform SHALL yêu cầu Supplier tải lên hình ảnh khác và hiển thị hướng dẫn chụp ảnh đạt chuẩn.
-
----
-
-### Yêu Cầu 5: Mô Hình Gói Giá (Bundle)
-
-**User Story:** Là một Buyer, tôi muốn mua thực phẩm theo gói với mức giá cố định, để tiết kiệm thời gian lựa chọn và chi phí mua sắm.
-
-#### Tiêu Chí Chấp Nhận
-
-1. THE ShortDate_Platform SHALL hỗ trợ bốn loại Bundle: Túi Mini (15.000–25.000đ), Túi Tiêu chuẩn (30.000–50.000đ), Túi Gia đình (99.000–149.000đ), Túi Premium (199.000–299.000đ).
-2. THE ShortDate_Platform SHALL đảm bảo giá trị thực của sản phẩm trong mỗi Bundle cao hơn giá bán Bundle tối thiểu 30%.
-3. WHEN Supplier tạo Bundle, THE ShortDate_Platform SHALL yêu cầu Supplier chỉ định: loại Bundle, danh sách Product trong Bundle, số lượng mỗi Product, giá bán Bundle.
-4. WHEN giá bán Bundle do Supplier nhập không thấp hơn giá trị thực tối thiểu 30%, THE ShortDate_Platform SHALL từ chối lưu và hiển thị thông báo yêu cầu điều chỉnh giá.
-5. THE ShortDate_Platform SHALL hiển thị tổng giá trị thực và mức tiết kiệm (số tiền và %) trên trang chi tiết mỗi Bundle.
-6. WHEN một Product trong Bundle hết hàng, THE ShortDate_Platform SHALL tự động ẩn Bundle đó khỏi danh sách hiển thị và thông báo cho Supplier.
 
 ---
 
@@ -174,10 +176,32 @@ Hệ thống phục vụ hai nhóm sản phẩm chính:
 4. WHEN địa chỉ giao hàng của Buyer nằm ngoài vùng phục vụ giao hàng nhanh, THE ShortDate_Platform SHALL thông báo cho Buyer và không cho phép đặt Order chứa Fresh_Product.
 5. THE ShortDate_Platform SHALL cung cấp tính năng theo dõi trạng thái giao hàng theo thời gian thực cho mỗi Order.
 6. WHEN trạng thái giao hàng của Order thay đổi, THE Notification_Service SHALL gửi thông báo cập nhật đến Buyer.
+7. WHEN Buyer xác nhận đặt hàng thành công, THE Supplier SHALL có thể xác nhận đơn hàng và cập nhật trạng thái lần lượt: "đang chuẩn bị hàng" → "đã bàn giao Carrier".
+8. WHEN Supplier cập nhật trạng thái "đã bàn giao Carrier" cho đơn hàng chứa Fresh_Product, THE ShortDate_Platform SHALL thông báo đến Carrier được phân công để tiếp nhận và giao hàng.
+9. THE Carrier SHALL có thể cập nhật trạng thái giao hàng cho đơn được phân công: "đang lấy hàng" → "đang giao" → "đã giao" hoặc "giao thất bại" kèm lý do.
+10. WHEN Carrier cập nhật trạng thái "giao thất bại", THE Notification_Service SHALL gửi thông báo đến Buyer và Supplier kèm lý do, và THE ShortDate_Platform SHALL cho phép Carrier lên lịch giao lại hoặc Supplier xử lý hoàn hàng.
+11. WHEN đơn hàng chứa Dry_Product được bàn giao cho 3PL, THE ShortDate_Platform SHALL nhận cập nhật trạng thái tự động qua webhook từ 3PL và đồng bộ vào hệ thống theo dõi đơn hàng.
 
 ---
 
-### Yêu Cầu 10: Supplier Dashboard
+### Yêu Cầu 10: Quản Lý Vận Chuyển (Carrier)
+
+**User Story:** Là một Carrier, tôi muốn có công cụ để nhận đơn hàng, cập nhật trạng thái giao hàng và quản lý lịch giao, để vận hành hiệu quả và minh bạch với Buyer và Supplier.
+
+#### Tiêu Chí Chấp Nhận
+
+1. THE ShortDate_Platform SHALL cho phép Carrier đăng ký tài khoản với thông tin: tên đơn vị, khu vực hoạt động, thông tin liên hệ; tài khoản phải được Admin phê duyệt trước khi sử dụng.
+2. WHEN Supplier cập nhật trạng thái đơn hàng là "đã bàn giao cho đơn vị vận chuyển", THE ShortDate_Platform SHALL hiển thị đơn hàng đó trong danh sách chờ tiếp nhận của Carrier được phân công.
+3. THE Carrier SHALL có thể xem danh sách đơn hàng được phân công kèm thông tin: địa chỉ lấy hàng, địa chỉ giao hàng, loại sản phẩm, thời hạn giao.
+4. THE Carrier SHALL có thể cập nhật trạng thái giao hàng theo luồng: "đang lấy hàng" → "đang giao" → "đã giao" hoặc "giao thất bại" kèm lý do và hình ảnh xác nhận.
+5. WHEN Carrier cập nhật trạng thái "đã giao", THE ShortDate_Platform SHALL yêu cầu Carrier tải lên hình ảnh xác nhận giao hàng thành công.
+6. WHEN Carrier cập nhật trạng thái "giao thất bại", THE Carrier SHALL chỉ định lý do (không có người nhận, địa chỉ sai, Buyer từ chối nhận) và THE ShortDate_Platform SHALL thông báo đến Buyer và Supplier để phối hợp xử lý.
+7. THE Carrier SHALL có thể lên lịch giao lại cho đơn hàng giao thất bại trong vòng 24 giờ kể từ lần giao thất bại đầu tiên.
+8. THE ShortDate_Platform SHALL cung cấp cho Carrier trang tổng quan hiển thị: số đơn đang xử lý, số đơn đã giao thành công trong ngày, tỷ lệ giao thành công.
+
+---
+
+### Yêu Cầu 11: Supplier Dashboard
 
 **User Story:** Là một Supplier, tôi muốn có bảng điều khiển thông minh để quản lý tồn kho và theo dõi hiệu suất kinh doanh, để đưa ra quyết định kinh doanh kịp thời.
 
@@ -192,7 +216,7 @@ Hệ thống phục vụ hai nhóm sản phẩm chính:
 
 ---
 
-### Yêu Cầu 11: Quảng Cáo Nội Sàn
+### Yêu Cầu 12: Quảng Cáo Nội Sàn
 
 **User Story:** Là một Supplier, tôi muốn quảng bá sản phẩm của mình trên sàn, để tăng khả năng hiển thị và doanh số bán hàng.
 
@@ -206,7 +230,7 @@ Hệ thống phục vụ hai nhóm sản phẩm chính:
 
 ---
 
-### Yêu Cầu 12: Đánh Giá và Phản Hồi
+### Yêu Cầu 13: Đánh Giá và Phản Hồi
 
 **User Story:** Là một Buyer, tôi muốn đánh giá sản phẩm và Supplier sau khi nhận hàng, để giúp cộng đồng có thêm thông tin tin cậy khi mua sắm.
 
@@ -220,7 +244,28 @@ Hệ thống phục vụ hai nhóm sản phẩm chính:
 
 ---
 
-### Yêu Cầu 13: Bảo Mật và Tuân Thủ
+### Yêu Cầu 14: Quản Lý Admin
+
+**User Story:** Là một Admin, tôi muốn có đầy đủ công cụ để quản lý người dùng, vận hành sàn và giám sát hệ thống, để đảm bảo sàn hoạt động an toàn và hiệu quả.
+
+#### Tiêu Chí Chấp Nhận
+
+1. WHEN Supplier nộp hồ sơ đăng ký tài khoản doanh nghiệp, THE Admin SHALL xét duyệt và phê duyệt hoặc từ chối hồ sơ làm việc kèm lý do từ chối nếu có.
+2. WHEN Admin phê duyệt hoặc từ chối hồ sơ Supplier, THE ShortDate_Platform SHALL gửi thông báo kết quả đến email của Supplier trong vòng 60 giây.
+3. THE Admin SHALL có thể tạo chương trình Flash_Sale với thông tin: tên chương trình, thời gian bắt đầu, thời gian kết thúc (tối đa 24 giờ), danh sách Product tham gia và mức giảm giá.
+4. THE Admin SHALL có thể chỉnh sửa hoặc hủy Flash_Sale đang chờ kích hoạt; WHEN Flash_Sale đã bắt đầu, THE Admin SHALL chỉ được phép kết thúc sớm chứ không được chỉnh sửa thông tin.
+5. WHEN điểm đánh giá trung bình của Supplier giảm xuống dưới 3.0 trong 30 ngày liên tiếp, THE ShortDate_Platform SHALL gửi cảnh báo đến Admin kèm thông tin chi tiết về Supplier và lịch sử đánh giá.
+6. WHEN Admin nhận cảnh báo Supplier có rating thấp, THE Admin SHALL có thể thực hiện một trong các hành động: gửi cảnh báo chính thức đến Supplier, tạm khóa tài khoản Supplier hoặc đánh dấu để theo dõi thêm.
+7. THE Admin SHALL có thể xem danh sách toàn bộ tài khoản Buyer và Supplier với các bộ lọc theo: trạng thái tài khoản, ngày đăng ký, loại tài khoản.
+8. THE Admin SHALL có thể khóa hoặc mở khóa tài khoản Buyer hoặc Supplier thủ công kèm lý do; WHEN tài khoản bị khóa, THE ShortDate_Platform SHALL gửi thông báo đến email của người dùng đó trong vòng 60 giây.
+9. THE Admin SHALL có thể truy cập và tìm kiếm audit log hệ thống theo khoảng thời gian, loại thao tác và tài khoản thực hiện.
+10. THE ShortDate_Platform SHALL cung cấp cho Admin trang tổng quan hệ thống hiển thị: tổng doanh thu toàn sàn theo ngày/tuần/tháng, số lượng Supplier và Buyer đang hoạt động, tổng số đơn hàng theo trạng thái.
+11. THE Admin SHALL có thể xem danh sách toàn bộ Product đang niêm yết trên sàn và kiểm tra nội dung từng sản phẩm (tên, hình ảnh, mô tả, HSD, danh mục).
+12. WHEN Admin xác định một Product vi phạm chính sách (hàng giả, hàng cấm, thông tin sai lệch), THE Admin SHALL có thể khóa Product đó ngay lập tức; WHEN Product bị khóa, THE ShortDate_Platform SHALL ẩn Product khỏi sàn, gửi thông báo đến Supplier kèm lý do vi phạm, và ghi lại hành động vào audit log.
+
+---
+
+### Yêu Cầu 15: Bảo Mật và Tuân Thủ
 
 **User Story:** Là một người dùng, tôi muốn thông tin cá nhân và giao dịch của mình được bảo vệ an toàn, để yên tâm sử dụng nền tảng.
 

@@ -9,6 +9,7 @@ import {
   Menu,
   MenuItem,
   Badge,
+  Container,
 } from '@mui/material';
 import {
   ShoppingCart,
@@ -17,9 +18,11 @@ import {
   Search,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { useCart } from '../../hooks/useCart.jsx';
 
-export default function Header({ cartCount = 0 }) {
+export default function Header() {
   const navigate = useNavigate();
+  const { itemsCount } = useCart();
   const [anchorEl, setAnchorEl] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
@@ -73,120 +76,149 @@ export default function Header({ cartCount = 0 }) {
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate(`/search?q=${searchQuery}`);
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 
   return (
-    <AppBar position="sticky" sx={{ backgroundColor: '#FFFFFF', color: '#212121' }}>
-      <Toolbar sx={{ justifyContent: 'space-between' }}>
-        {/* Logo */}
-        <Box
-          onClick={() => navigate('/')}
+    <AppBar
+      position="sticky"
+      elevation={0}
+      sx={{
+        backgroundColor: '#F7FBF0',
+        color: '#212121',
+        borderBottom: '1px solid rgba(191, 202, 186, 0.25)',
+      }}
+    >
+      <Toolbar disableGutters sx={{ height: 84 }}>
+        <Container
+          maxWidth={false}
           sx={{
-            fontSize: '1.8rem',
-            fontWeight: 700,
-            cursor: 'pointer',
-            color: '#4CAF50',
-            letterSpacing: '-0.02em',
-          }}
-        >
-          ShortDate
-        </Box>
-
-        {/* Search Bar */}
-        <Box
-          component="form"
-          onSubmit={handleSearch}
-          sx={{
+            maxWidth: 1280,
+            px: 3,
             display: 'flex',
-            gap: 1,
-            flex: 1,
-            maxWidth: '500px',
-            mx: 2,
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 3,
           }}
         >
-          <TextField
-            size="small"
-            placeholder="Tìm sản phẩm..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+          {/* Logo */}
+          <Box
+            onClick={() => navigate('/')}
             sx={{
-              flex: 1,
-              backgroundColor: '#F5F5F5',
-              '& .MuiOutlinedInput-root': { borderRadius: '8px' },
-            }}
-          />
-          <IconButton type="submit" color="primary">
-            <Search />
-          </IconButton>
-        </Box>
-
-        {/* Actions */}
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-          <IconButton color="inherit">
-            <Badge badgeContent={0} color="error">
-              <Favorite />
-            </Badge>
-          </IconButton>
-
-          <IconButton color="inherit">
-            <Badge badgeContent={cartCount} color="error">
-              <ShoppingCart />
-            </Badge>
-          </IconButton>
-
-          <IconButton color="inherit" onClick={handleMenuOpen}>
-            <AccountCircle sx={{ fontSize: '1.8rem' }} />
-          </IconButton>
-
-          <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
-            {!isLoggedIn ? [
-              <MenuItem key="login" onClick={() => { handleMenuClose(); navigate('/login'); }}>
-                Đăng Nhập
-              </MenuItem>,
-              <MenuItem key="register" onClick={() => { handleMenuClose(); navigate('/register'); }}>
-                Đăng Ký
-              </MenuItem>
-            ] : [
-              <MenuItem key="profile" onClick={() => { handleMenuClose(); navigate('/profile'); }}>
-                Trang Cá Nhân
-              </MenuItem>,
-              userType === 'supplier' ? (
-                <MenuItem key="shop" onClick={() => { handleMenuClose(); navigate('/supplier/products'); }}>
-                  Quản Lý Cửa Hàng
-                </MenuItem>
-              ) : null,
-              <MenuItem key="logout" onClick={handleLogout}>Đăng Xuất</MenuItem>
-            ].filter(Boolean)}
-          </Menu>
-        </Box>
-      </Toolbar>
-
-      {/* Category Bar */}
-      <Box
-        sx={{
-          backgroundColor: '#F5F5F5',
-          padding: '8px 16px',
-          display: 'flex',
-          gap: 2,
-          overflowX: 'auto',
-        }}
-      >
-        {['Tất Cả', 'Thực Phẩm Khô', 'Đồ Ăn Tươi', 'Flash Sale'].map((cat) => (
-          <Button
-            key={cat}
-            size="small"
-            sx={{
-              color: '#757575',
-              whiteSpace: 'nowrap',
-              '&:hover': { color: '#4CAF50' },
+              fontSize: 24,
+              fontWeight: 900,
+              cursor: 'pointer',
+              color: '#0D631B',
+              letterSpacing: '-1.2px',
+              fontFamily: '"Manrope","Inter",system-ui,sans-serif',
+              lineHeight: '32px',
+              width: 112,
             }}
           >
-            {cat}
-          </Button>
-        ))}
-      </Box>
+            ShortDate
+          </Box>
+
+          {/* Nav links */}
+          <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 4 }}>
+            <Button
+              onClick={() => navigate('/')}
+              sx={{
+                color: '#0D631B',
+                fontWeight: 700,
+                borderBottom: '2px solid #0D631B',
+                borderRadius: 0,
+                pb: '4px',
+                minWidth: 'auto',
+              }}
+            >
+              Home
+            </Button>
+            <Button onClick={() => navigate('/search')} sx={{ color: '#181D17', fontWeight: 500, minWidth: 'auto' }}>
+              Categories
+            </Button>
+            <Button onClick={() => navigate('/search')} sx={{ color: '#181D17', fontWeight: 500, minWidth: 'auto' }}>
+              Location
+            </Button>
+            <Button onClick={() => navigate('/search?hsd=today')} sx={{ color: '#181D17', fontWeight: 500, minWidth: 'auto' }}>
+              Deals
+            </Button>
+          </Box>
+
+          {/* Search pill */}
+          <Box
+            component="form"
+            onSubmit={handleSearch}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              width: 318,
+              height: 52,
+              background: '#F1F5EB',
+              borderRadius: 9999,
+              px: 2,
+            }}
+          >
+            <Search sx={{ fontSize: 19, color: '#0D631B' }} />
+            <TextField
+              variant="standard"
+              placeholder="Tìm kiếm sản phẩm..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              InputProps={{ disableUnderline: true }}
+              sx={{
+                flex: 1,
+                '& input': { fontSize: 14, color: '#181D17' },
+              }}
+            />
+            <IconButton type="submit" size="small" sx={{ color: '#0D631B' }}>
+              <Search sx={{ fontSize: 19 }} />
+            </IconButton>
+          </Box>
+
+          {/* Actions */}
+          <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
+            <IconButton color="inherit" sx={{ color: '#0D631B' }}>
+              <Badge badgeContent={0} color="error">
+                <Favorite />
+              </Badge>
+            </IconButton>
+
+            <IconButton color="inherit" onClick={() => navigate('/cart')} sx={{ color: '#0D631B' }}>
+              <Badge badgeContent={itemsCount} color="error">
+                <ShoppingCart />
+              </Badge>
+            </IconButton>
+
+            <IconButton color="inherit" onClick={handleMenuOpen} sx={{ color: '#0D631B' }}>
+              <AccountCircle sx={{ fontSize: 28 }} />
+            </IconButton>
+
+            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
+              {!isLoggedIn ? [
+                <MenuItem key="login" onClick={() => { handleMenuClose(); navigate('/login'); }}>
+                  Đăng Nhập
+                </MenuItem>,
+                <MenuItem key="register" onClick={() => { handleMenuClose(); navigate('/register'); }}>
+                  Đăng Ký
+                </MenuItem>
+              ] : [
+                <MenuItem key="profile" onClick={() => { handleMenuClose(); navigate('/profile'); }}>
+                  Trang Cá Nhân
+                </MenuItem>,
+                userType === 'supplier' ? (
+                  <MenuItem key="shop" onClick={() => { handleMenuClose(); navigate('/supplier/products'); }}>
+                    Quản Lý Cửa Hàng
+                  </MenuItem>
+                ) : null,
+                <MenuItem key="logout" onClick={handleLogout}>Đăng Xuất</MenuItem>
+              ].filter(Boolean)}
+            </Menu>
+          </Box>
+        </Container>
+      </Toolbar>
+
     </AppBar>
   );
 }

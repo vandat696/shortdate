@@ -51,7 +51,13 @@ export default class Product {
 
   // Lấy sản phẩm theo ID
   static async findById(id) {
-    const query = 'SELECT * FROM products WHERE id = $1 AND is_active = true';
+    const query = `
+      SELECT 
+        p.*,
+        (SELECT image_url FROM product_images WHERE product_id = p.id ORDER BY position ASC LIMIT 1) as thumbnail_url
+      FROM products p
+      WHERE p.id = $1 AND p.is_active = true
+    `;
     const result = await pool.query(query, [id]);
     return result.rows[0] || null;
   }
@@ -78,47 +84,53 @@ export default class Product {
 
   // Lấy tất cả sản phẩm (cho Buyer)
   static async findAll(filters = {}) {
-    let query = 'SELECT * FROM products WHERE is_active = true';
+    let query = `
+      SELECT 
+        p.*,
+        (SELECT image_url FROM product_images WHERE product_id = p.id ORDER BY position ASC LIMIT 1) as thumbnail_url
+      FROM products p
+      WHERE p.is_active = true
+    `;
     const params = [];
 
     // Filter theo loại sản phẩm
     if (filters.product_type) {
       params.push(filters.product_type);
-      query += ` AND product_type = $${params.length}`;
+      query += ` AND p.product_type = $${params.length}`;
     }
 
     // Filter theo danh mục
     if (filters.category) {
       params.push(filters.category);
-      query += ` AND category = $${params.length}`;
+      query += ` AND p.category = $${params.length}`;
     }
 
     // Filter theo khoảng giá
     if (filters.min_price) {
       params.push(filters.min_price);
-      query += ` AND current_price >= $${params.length}`;
+      query += ` AND p.current_price >= $${params.length}`;
     }
 
     if (filters.max_price) {
       params.push(filters.max_price);
-      query += ` AND current_price <= $${params.length}`;
+      query += ` AND p.current_price <= $${params.length}`;
     }
 
     // Filter theo ngày hết hạn
     if (filters.min_days_left) {
       params.push(filters.min_days_left);
-      query += ` AND (expiry_date - CURRENT_DATE) >= $${params.length}`;
+      query += ` AND (p.expiry_date - CURRENT_DATE) >= $${params.length}`;
     }
 
     if (filters.max_days_left) {
       params.push(filters.max_days_left);
-      query += ` AND (expiry_date - CURRENT_DATE) <= $${params.length}`;
+      query += ` AND (p.expiry_date - CURRENT_DATE) <= $${params.length}`;
     }
 
     // Filter theo discount
     if (filters.min_discount) {
       params.push(filters.min_discount);
-      query += ` AND discount_percentage >= $${params.length}`;
+      query += ` AND p.discount_percentage >= $${params.length}`;
     }
 
     // Sắp xếp

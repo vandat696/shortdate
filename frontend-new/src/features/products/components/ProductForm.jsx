@@ -12,8 +12,14 @@ import {
   Typography,
   Alert,
   CircularProgress,
-  Grid
+  Grid,
+  Paper,
+  IconButton,
+  Chip
 } from '@mui/material';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import DeleteIcon from '@mui/icons-material/Delete';
+import ImageIcon from '@mui/icons-material/Image';
 import api from '../../../services/api';
 
 export default function ProductForm({ initialData = null, onSuccess = null }) {
@@ -36,6 +42,12 @@ export default function ProductForm({ initialData = null, onSuccess = null }) {
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  // Image upload state
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const [dragging, setDragging] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -66,6 +78,92 @@ export default function ProductForm({ initialData = null, onSuccess = null }) {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  // Image upload handlers
+  const handleFileSelect = (files) => {
+    const maxFiles = 4;
+    const totalFiles = selectedFiles.length + files.length;
+
+    if (totalFiles > maxFiles) {
+      setErrorMessage(`Tối đa ${maxFiles} ảnh. Hiện tại bạn đã chọn ${selectedFiles.length} ảnh.`);
+      return;
+    }
+
+    const validFiles = Array.from(files).filter((file) => {
+      if (!file.type.startsWith('image/')) {
+        setErrorMessage(`${file.name} không phải là ảnh`);
+        return false;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setErrorMessage(`${file.name} quá lớn (tối đa 5MB)`);
+        return false;
+      }
+      return true;
+    });
+
+    if (validFiles.length > 0) {
+      setSelectedFiles((prev) => [...prev, ...validFiles]);
+
+      // Create previews
+      validFiles.forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          setImagePreviews((prev) => [...prev, e.target.result]);
+        };
+        reader.readAsDataURL(file);
+      });
+      setErrorMessage('');
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragging(false);
+    handleFileSelect(e.dataTransfer.files);
+  };
+
+  const handleRemoveImage = (index) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadProductImages = async (productId) => {
+    if (selectedFiles.length === 0) return;
+
+    setUploadingImages(true);
+    try {
+      const formData = new FormData();
+      selectedFiles.forEach((file) => {
+        formData.append('images', file);
+      });
+
+      const response = await api.post(`/images/${productId}/upload`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      setSuccessMessage('Sản phẩm và ảnh được lưu thành công');
+      setSelectedFiles([]);
+      setImagePreviews([]);
+    } catch (err) {
+      setErrorMessage(
+        err.response?.data?.error || 'Lỗi khi tải ảnh'
+      );
+    } finally {
+      setUploadingImages(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -102,9 +200,16 @@ export default function ProductForm({ initialData = null, onSuccess = null }) {
         response = await api.post('/products', payload);
       }
 
-      setSuccessMessage(
-        response.data.message || 'Sản phẩm được lưu thành công'
-      );
+      const newProductId = response.data.product.id;
+
+      // Upload images if any selected
+      if (selectedFiles.length > 0 && !initialData?.id) {
+        await uploadProductImages(newProductId);
+      } else {
+        setSuccessMessage(
+          response.data.message || 'Sản phẩm được lưu thành công'
+        );
+      }
 
       // Reset form
       if (!initialData?.id) {
@@ -292,16 +397,111 @@ export default function ProductForm({ initialData = null, onSuccess = null }) {
               />
             </Grid>
 
-            {/* Row 6 */}
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="URL hình ảnh"
-                name="image_url"
-                value={formData.image_url}
-                onChange={handleInputChange}
-              />
-            </Grid>
+            {/* Row 6 - File Upload with Drag & Drop */}
+            {!initialData?.id && (
+              <Grid item xs={12}>
+                <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 700 }}>
+                 Tải ảnh sản phẩm (tối đa 4 ảnh)
+                </Typography>
+
+                <Paper
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  sx={{
+                    p: 3,
+                    textAlign: 'center',
+                    border: '2px dashed',
+                    borderColor: dragging ? '#0D631B' : '#CCCCCC',
+                    backgroundColor: dragging ? '#F7FBF0' : '#FAFAFA',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    mb: 2
+                  }}
+                >
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={(e) => handleFileSelect(e.target.files)}
+                    style={{ display: 'none' }}
+                    id="file-input"
+                  />
+                  <label htmlFor="file-input" style={{ cursor: 'pointer', display: 'block' }}>
+                    <CloudUploadIcon sx={{ fontSize: 48, color: '#0D631B', mb: 1 }} />
+                    <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                      Kéo ảnh vào đây hoặc bấm để chọn
+                    </Typography>
+                    <Typography variant="caption" color="textSecondary">
+                      Hỗ trợ JPG, PNG, WebP (tối đa 5MB mỗi ảnh)
+                    </Typography>
+                  </label>
+                </Paper>
+
+                {/* Image Previews */}
+                {imagePreviews.length > 0 && (
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700 }}>
+                      Ảnh đã chọn ({imagePreviews.length}/4):
+                    </Typography>
+                    <Grid container spacing={1}>
+                      {imagePreviews.map((preview, index) => (
+                        <Grid item xs={6} sm={3} key={index}>
+                          <Paper
+                            sx={{
+                              position: 'relative',
+                              overflow: 'hidden',
+                              paddingBottom: '100%',
+                              backgroundColor: '#F0F0F0'
+                            }}
+                          >
+                            <Box
+                              component="img"
+                              src={preview}
+                              alt={`Preview ${index + 1}`}
+                              sx={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover'
+                              }}
+                            />
+                            <IconButton
+                              size="small"
+                              onClick={() => handleRemoveImage(index)}
+                              sx={{
+                                position: 'absolute',
+                                top: 4,
+                                right: 4,
+                                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                '&:hover': {
+                                  backgroundColor: '#FF6B6B'
+                                }
+                              }}
+                            >
+                              <DeleteIcon sx={{ fontSize: 16 }} />
+                            </IconButton>
+                            <Chip
+                              label={`#${index + 1}`}
+                              size="small"
+                              sx={{
+                                position: 'absolute',
+                                bottom: 4,
+                                left: 4,
+                                backgroundColor: '#0D631B',
+                                color: 'white'
+                              }}
+                            />
+                          </Paper>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  </Box>
+                )}
+              </Grid>
+            )}
 
             {/* Row 7 - Auto pricing */}
             <Grid item xs={12}>
@@ -326,10 +526,17 @@ export default function ProductForm({ initialData = null, onSuccess = null }) {
                   variant="contained"
                   color="primary"
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || uploadingImages}
                   sx={{ flex: 1 }}
                 >
-                  {loading ? <CircularProgress size={24} /> : (initialData?.id ? 'Cập nhật' : 'Thêm sản phẩm')}
+                  {loading || uploadingImages ? (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <CircularProgress size={24} sx={{ color: 'white' }} />
+                      {uploadingImages ? 'Đang tải ảnh...' : 'Đang xử lý...'}
+                    </Box>
+                  ) : (
+                    initialData?.id ? 'Cập nhật' : 'Thêm sản phẩm'
+                  )}
                 </Button>
               </Box>
             </Grid>
