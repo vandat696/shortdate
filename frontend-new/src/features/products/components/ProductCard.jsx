@@ -1,13 +1,32 @@
 import { Box, Typography } from '@mui/material';
+import StoreIcon from '@mui/icons-material/Store';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import { getImageUrl } from '../../../services/api';
+import { getSupplierDistance } from '../../../utils/distanceUtils';
 
 export default function ProductCard({ product }) {
   const navigate = useNavigate();
   const imageUrl = getImageUrl(product.thumbnail_url || product.image_url);
   const discount = Math.round(
     ((product.original_price - product.current_price) / product.original_price) * 100
+  );
+
+  // Tính khoảng cách từ user đến supplier
+  const userLocation = (() => {
+    try {
+      const loc = localStorage.getItem('userLocation');
+      return loc ? JSON.parse(loc) : null;
+    } catch {
+      return null;
+    }
+  })();
+
+  const supplierDistance = getSupplierDistance(
+    userLocation,
+    product.supplier_latitude,
+    product.supplier_longitude
   );
 
   const handleClick = () => {
@@ -127,6 +146,42 @@ export default function ProductCard({ product }) {
         >
           {product.name}
         </Typography>
+
+        {/* Supplier Name */}
+        {product.supplier_name && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <StoreIcon sx={{ fontSize: '14px', color: '#666666' }} />
+            <Typography
+              sx={{
+                fontFamily: '"Inter",system-ui,sans-serif',
+                fontWeight: 500,
+                fontSize: '11px',
+                lineHeight: '14px',
+                color: '#666666',
+                marginTop: '4px',
+              }}
+            >
+              {product.supplier_name}
+            </Typography>
+          </Box>
+        )}
+
+        {/* Distance */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <LocationOnIcon sx={{ fontSize: '14px', color: '#0D631B' }} />
+          <Typography
+            sx={{
+              fontFamily: '"Inter",system-ui,sans-serif',
+              fontWeight: 500,
+              fontSize: '11px',
+              lineHeight: '14px',
+              color: '#0D631B',
+              marginBottom: '4px',
+            }}
+          >
+            {supplierDistance}
+          </Typography>
+        </Box>
 
         {/* Pricing */}
         <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, mt: 'auto' }}>

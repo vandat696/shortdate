@@ -54,8 +54,12 @@ export default class Product {
     const query = `
       SELECT 
         p.*,
-        (SELECT image_url FROM product_images WHERE product_id = p.id ORDER BY position ASC LIMIT 1) as thumbnail_url
+        (SELECT image_url FROM product_images WHERE product_id = p.id ORDER BY position ASC LIMIT 1) as thumbnail_url,
+        sd.company_name as supplier_name,
+        sd.latitude as supplier_latitude,
+        sd.longitude as supplier_longitude
       FROM products p
+      LEFT JOIN supplier_details sd ON p.supplier_id = sd.user_id
       WHERE p.id = $1 AND p.is_active = true
     `;
     const result = await pool.query(query, [id]);
@@ -87,8 +91,12 @@ export default class Product {
     let query = `
       SELECT 
         p.*,
-        (SELECT image_url FROM product_images WHERE product_id = p.id ORDER BY position ASC LIMIT 1) as thumbnail_url
+        (SELECT image_url FROM product_images WHERE product_id = p.id ORDER BY position ASC LIMIT 1) as thumbnail_url,
+        sd.company_name as supplier_name,
+        sd.latitude as supplier_latitude,
+        sd.longitude as supplier_longitude
       FROM products p
+      LEFT JOIN supplier_details sd ON p.supplier_id = sd.user_id
       WHERE p.is_active = true
     `;
     const params = [];

@@ -1,9 +1,23 @@
 import { Box, Typography } from '@mui/material';
+import StoreIcon from '@mui/icons-material/Store';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import { getImageUrl } from '../../services/api';
+import { getSupplierDistance } from '../../utils/distanceUtils';
 
-export default function LocalProductCard({ productId, image, category, name, price, discount, delivery }) {
+export default function LocalProductCard({ 
+  productId, 
+  image, 
+  category, 
+  name, 
+  price, 
+  discount, 
+  delivery,
+  supplierName,
+  supplierLatitude,
+  supplierLongitude
+}) {
   const navigate = useNavigate();
 
   const handleClick = () => {
@@ -11,6 +25,22 @@ export default function LocalProductCard({ productId, image, category, name, pri
       navigate(`/products/${productId}`);
     }
   };
+
+  // Tính khoảng cách từ user đến supplier
+  const userLocation = (() => {
+    try {
+      const loc = localStorage.getItem('userLocation');
+      return loc ? JSON.parse(loc) : null;
+    } catch {
+      return null;
+    }
+  })();
+
+  const supplierDistance = getSupplierDistance(
+    userLocation,
+    supplierLatitude,
+    supplierLongitude
+  );
 
   const imageUrl = getImageUrl(image);
   
@@ -78,6 +108,40 @@ export default function LocalProductCard({ productId, image, category, name, pri
           {name}
         </Typography>
 
+        {/* Supplier Name */}
+        {supplierName && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <StoreIcon sx={{ fontSize: '12px', color: '#666666' }} />
+            <Typography
+              sx={{
+                fontFamily: '"Inter",system-ui,sans-serif',
+                fontWeight: 500,
+                fontSize: '12px',
+                lineHeight: '16px',
+                color: '#666666',
+              }}
+            >
+              {supplierName}
+            </Typography>
+          </Box>
+        )}
+
+        {/* Distance */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <LocationOnIcon sx={{ fontSize: '12px', color: '#0D631B' }} />
+          <Typography
+            sx={{
+              fontFamily: '"Inter",system-ui,sans-serif',
+              fontWeight: 500,
+              fontSize: '12px',
+              lineHeight: '16px',
+              color: '#0D631B',
+            }}
+          >
+            {supplierDistance}
+          </Typography>
+        </Box>
+
         {/* Price & Discount */}
         <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 1 }}>
           <Typography
@@ -140,8 +204,14 @@ LocalProductCard.propTypes = {
   price: PropTypes.number.isRequired,
   discount: PropTypes.number.isRequired,
   delivery: PropTypes.string.isRequired,
+  supplierName: PropTypes.string,
+  supplierLatitude: PropTypes.number,
+  supplierLongitude: PropTypes.number,
 };
 
 LocalProductCard.defaultProps = {
   image: '',
+  supplierName: '',
+  supplierLatitude: null,
+  supplierLongitude: null,
 };
