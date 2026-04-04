@@ -167,6 +167,11 @@ export default function ProfilePage() {
           const response = await api.get('/auth/location');
           if (response.data?.location) {
             setUserLocation(response.data.location);
+            // Lưu user location vào localStorage cho ProductCard sử dụng
+            localStorage.setItem('userLocation', JSON.stringify({
+              lat: response.data.location.latitude,
+              lng: response.data.location.longitude
+            }));
           }
         } catch (err) {
           console.error('Error fetching user location:', err);
@@ -192,6 +197,11 @@ export default function ProfilePage() {
         setSupplierLocation(response.data.location);
       } else {
         setUserLocation(response.data.location);
+        // Lưu user location vào localStorage cho ProductCard sử dụng
+        localStorage.setItem('userLocation', JSON.stringify({
+          lat: response.data.location.latitude,
+          lng: response.data.location.longitude
+        }));
       }
       
       setShowLocationPicker(false);

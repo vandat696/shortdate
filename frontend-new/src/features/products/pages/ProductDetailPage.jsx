@@ -14,6 +14,7 @@ import {
 import { productService, imageService } from '../../../services/api';
 import ProductImageGallery from '../components/ProductImageGallery';
 import ProductControls from '../components/ProductControls';
+import SupplierInfoCard from '../components/SupplierInfoCard';
 import axios from 'axios';
 
 // Helper: Calculate days remaining
@@ -110,6 +111,9 @@ export default function ProductDetailPage() {
           expiry_date: data.expiry_date,
           stock_quantity: data.stock_quantity,
           supplier_id: data.supplier_id,
+          supplier_name: data.supplier_name,
+          supplier_latitude: data.supplier_latitude,
+          supplier_longitude: data.supplier_longitude,
           freshnessPercentage: calculateFreshness(data.expiry_date),
           allImages: allImages.length > 0 ? allImages : (mainImage ? [{ id: 1, image_url: mainImage }] : []),
         });
@@ -690,6 +694,14 @@ export default function ProductDetailPage() {
               </Box>
             </Box>
           )}
+
+          {/* Supplier Info Card */}
+          <SupplierInfoCard
+            supplierName={product.supplier_name}
+            supplierLatitude={product.supplier_latitude}
+            supplierLongitude={product.supplier_longitude}
+            supplierAddress={product.description}
+          />
 
           {/* Related Products Section */}
           <Box sx={{ mb: 8 }}>
