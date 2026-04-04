@@ -5,7 +5,7 @@ import ProductCard from '../components/ProductCard';
 import HeroSalesCarousel from '../components/HeroSalesCarousel';
 import CategoriesSection from '../components/CategoriesSection';
 import BundlesSection from '../components/BundlesSection';
-import LocalProductCard from '../../../components/common/LocalProductCard';
+import NearYouMap from '../components/NearYouMap';
 import { productService } from '../../../services/api';
 
 const FALLBACK_PRODUCTS = [
@@ -213,10 +213,10 @@ export default function HomePage() {
           {/* Bundles Section */}
           <BundlesSection />
 
-          {/* Near You Section - Enhanced */}
+          {/* Near You Section - Map View */}
           <Box sx={{ width: '100%', py: '128px' }}>
             <Container maxWidth={false} sx={{ maxWidth: 1280, px: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
                 <Box
                   sx={{
                     display: 'flex',
@@ -230,93 +230,11 @@ export default function HomePage() {
                 >
                   <Typography sx={{ fontSize: '24px' }}>🚀</Typography>
                 </Box>
-                <Box>
-                  <Typography sx={{ fontFamily: '"Manrope","Inter",system-ui,sans-serif', fontWeight: 800, fontSize: 30, lineHeight: '36px', letterSpacing: '-0.75px', color: '#181D17' }}>
-                    Sản phẩm quanh bạn
-                  </Typography>
-                  <Typography sx={{ fontFamily: '"Inter",system-ui,sans-serif', fontWeight: 500, fontSize: 16, lineHeight: '24px', color: '#40493D', mt: 0.5 }}>
-                    CHỈ mất 2 TIẾNG giao hàng
-                  </Typography>
-                </Box>
+                <Typography sx={{ fontFamily: '"Manrope","Inter",system-ui,sans-serif', fontWeight: 800, fontSize: 30, lineHeight: '36px', letterSpacing: '-0.75px', color: '#181D17' }}>
+                  Sản phẩm quanh bạn
+                </Typography>
               </Box>
-
-              <Grid container spacing={3} sx={{ mt: 1 }}>
-                <Grid item xs={12} md={4}>
-                  {/* Map Placeholder */}
-                  <Box
-                    sx={{
-                      height: '400px',
-                      backgroundColor: '#E0E4DA',
-                      borderRadius: '32px',
-                      position: 'relative',
-                      overflow: 'hidden',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      flexDirection: 'column',
-                      gap: 2,
-                    }}
-                  >
-                    <Typography sx={{ fontSize: '48px' }}>🗺️</Typography>
-                    <Typography sx={{ fontFamily: '"Inter",system-ui,sans-serif', fontWeight: 700, fontSize: 16, lineHeight: '24px', color: '#181D17', textAlign: 'center' }}>
-                      📍 Vị trí của bạn
-                    </Typography>
-
-                    {/* Gradient Overlay */}
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        left: 0,
-                        right: 0,
-                        top: 0,
-                        bottom: 0,
-                        background: 'linear-gradient(0deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0) 100%)',
-                      }}
-                    />
-
-                    {/* Location Badge */}
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        bottom: '24px',
-                        left: '24px',
-                        right: '24px',
-                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                        backdropFilter: 'blur(4px)',
-                        borderRadius: '24px',
-                        padding: '16px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px',
-                        zIndex: 10,
-                      }}
-                    >
-                      <Typography sx={{ fontSize: '16px' }}>📍</Typography>
-                      <Typography sx={{ fontFamily: '"Inter",system-ui,sans-serif', fontWeight: 700, fontSize: 14, lineHeight: '20px', color: '#181D17' }}>
-                        Cách 1.2 km
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Grid>
-
-                <Grid item xs={12} md={8}>
-                  <Grid container spacing={2}>
-                    {nearYouProducts.slice(0, 4).map((product, idx) => (
-                      <Grid item xs={12} key={`near-${idx}`}>
-                        <LocalProductCard
-                          productId={product.id}
-                          image={product.image_url}
-                          category={product.category || 'Fresh'}
-                          name={product.name}
-                          price={product.current_price}
-                          discount={Math.round(((product.original_price - product.current_price) / product.original_price) * 100)}
-                          delivery="Trong 4 giờ"
-                        />
-                      </Grid>
-                    ))}
-                  </Grid>
-                </Grid>
-              </Grid>
+              <NearYouMap />
             </Container>
           </Box>
         </Box>
