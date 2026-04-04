@@ -1,12 +1,22 @@
 import { Box, Typography } from '@mui/material';
 import PropTypes from 'prop-types';
+import { useNavigate } from 'react-router-dom';
 import { getImageUrl } from '../../services/api';
 
-export default function LocalProductCard({ image, category, name, price, discount, delivery }) {
+export default function LocalProductCard({ productId, image, category, name, price, discount, delivery }) {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    if (productId) {
+      navigate(`/products/${productId}`);
+    }
+  };
+
   const imageUrl = getImageUrl(image);
   
   return (
     <Box
+      onClick={handleClick}
       sx={{
         display: 'flex',
         flexDirection: 'row',
@@ -16,12 +26,12 @@ export default function LocalProductCard({ image, category, name, price, discoun
         backgroundColor: '#FFFFFF',
         boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.05)',
         borderRadius: '16px',
-        cursor: 'pointer',
+        cursor: productId ? 'pointer' : 'default',
         transition: 'all 0.3s ease',
-        '&:hover': {
+        '&:hover': productId ? {
           boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
           transform: 'translateY(-2px)',
-        },
+        } : {},
       }}
     >
       {/* Product Image */}
@@ -79,7 +89,7 @@ export default function LocalProductCard({ image, category, name, price, discoun
               color: '#0D631B',
             }}
           >
-            ${price}
+            {price.toLocaleString('vi-VN')}₫
           </Typography>
           <Box
             sx={{
@@ -123,6 +133,7 @@ export default function LocalProductCard({ image, category, name, price, discoun
 }
 
 LocalProductCard.propTypes = {
+  productId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   image: PropTypes.string,
   category: PropTypes.string.isRequired,
   name: PropTypes.string.isRequired,

@@ -1,6 +1,16 @@
 import { Box, Container, Grid, Typography, CircularProgress } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
 import { productService, imageService } from '../../../services/api';
 import ProductImageGallery from '../components/ProductImageGallery';
 import ProductControls from '../components/ProductControls';
@@ -37,6 +47,8 @@ export default function ProductDetailPage() {
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [priceHistory, setPriceHistory] = useState([]);
+  const [priceChartLoading, setPriceChartLoading] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -114,9 +126,46 @@ export default function ProductDetailPage() {
     }
   }, [productId]);
 
+  // Fetch price history
+  useEffect(() => {
+    const fetchPriceHistory = async () => {
+      if (!productId) return;
+      try {
+        setPriceChartLoading(true);
+        const response = await axios.get(
+          `http://localhost:5000/api/pricing/${productId}/with-history`
+        );
+        const historyData = response.data.history || [];
+        
+        // Sort by time ascending
+        const sortedHistory = historyData.sort((a, b) => 
+          new Date(a.changed_at) - new Date(b.changed_at)
+        );
+        
+        // Transform data for chart
+        const chartData = sortedHistory.map(item => ({
+          date: new Date(item.changed_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit' }),
+          timestamp: new Date(item.changed_at).getTime(),
+          oldPrice: Number(item.old_price),
+          newPrice: Number(item.new_price),
+          reason: item.reason,
+        }));
+        
+        setPriceHistory(chartData);
+      } catch (error) {
+        console.error('Error fetching price history:', error);
+        setPriceHistory([]);
+      } finally {
+        setPriceChartLoading(false);
+      }
+    };
+
+    fetchPriceHistory();
+  }, [productId]);
+
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', backgroundColor: '#F7FBF0' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8, backgroundColor: '#F7FBF0' }}>
         <CircularProgress sx={{ color: '#0D631B' }} />
       </Box>
     );
@@ -124,7 +173,7 @@ export default function ProductDetailPage() {
 
   if (error || !product) {
     return (
-      <Box sx={{ backgroundColor: '#F7FBF0', minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+      <Box sx={{ backgroundColor: '#F7FBF0', py: 8, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <Box sx={{ textAlign: 'center' }}>
           <Typography sx={{ fontWeight: 800, fontSize: '24px', mb: 1, color: '#181D17' }}>
             Không tìm thấy sản phẩm
@@ -140,7 +189,7 @@ export default function ProductDetailPage() {
   const discountPercentage = Math.round(((product.original_price - product.current_price) / product.original_price) * 100);
 
   return (
-    <Box sx={{ backgroundColor: '#F7FBF0', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{ backgroundColor: '#F7FBF0', display: 'flex', flexDirection: 'column', width: '100%', overflowX: 'hidden', overflow: 'hidden' }}>
       {/* Main Content Container */}
       <Box sx={{ flex: 1, px: 3, py: 4 }}>
         {/* Fixed 1280px Container */}
@@ -278,7 +327,7 @@ export default function ProductDetailPage() {
                             color: '#181D17',
                           }}
                         >
-                          ${product.current_price}
+                          {product.current_price.toLocaleString('vi-VN')}₫
                         </Typography>
                         <Typography
                           sx={{
@@ -290,7 +339,7 @@ export default function ProductDetailPage() {
                             color: '#707A6C',
                           }}
                         >
-                          ${product.original_price}
+                          {product.original_price.toLocaleString('vi-VN')}₫
                         </Typography>
                       </Box>
                     </Box>
@@ -563,6 +612,85 @@ export default function ProductDetailPage() {
             </Grid>
           </Grid>
 
+          {/* Price History Chart Section */}
+          {priceHistory.length > 0 && (
+            <Box sx={{ mb: 8 }}>
+              <Typography
+                sx={{
+                  fontFamily: '"Manrope",system-ui,sans-serif',
+                  fontWeight: 900,
+                  fontSize: '24px',
+                  lineHeight: '32px',
+                  letterSpacing: '-1.2px',
+                  color: '#181D17',
+                  mb: 4,
+                }}
+              >
+                Biến động giá theo thời gian
+              </Typography>
+              <Box
+                sx={{
+                  p: 4,
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '24px',
+                  boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.05)',
+                }}
+              >
+                {priceChartLoading ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+                    <CircularProgress sx={{ color: '#0D631B' }} />
+                  </Box>
+                ) : (
+                  <Box sx={{ width: '100%', height: 400 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={priceHistory}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#EBEFE5" />
+                        <XAxis 
+                          dataKey="date" 
+                          tick={{ fontSize: 12, fill: '#707A6C' }}
+                          stroke="#EBEFE5"
+                        />
+                        <YAxis 
+                          tick={{ fontSize: 12, fill: '#707A6C' }}
+                          stroke="#EBEFE5"
+                          label={{ value: 'Giá (₫)', angle: -90, position: 'insideLeft', fill: '#707A6C' }}
+                        />
+                        <Tooltip 
+                          formatter={(value) => `₫${Number(value).toLocaleString('vi-VN')}`}
+                          contentStyle={{ 
+                            backgroundColor: '#fff', 
+                            border: '1px solid #EBEFE5',
+                            borderRadius: '8px'
+                          }}
+                        />
+                        <Legend 
+                          wrapperStyle={{ paddingTop: '20px' }}
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="newPrice" 
+                          stroke="#0D631B" 
+                          strokeWidth={2}
+                          name="Giá hiện tại"
+                          dot={{ fill: '#0D631B', r: 4 }}
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="oldPrice" 
+                          stroke="#999" 
+                          strokeWidth={1}
+                          strokeDasharray="5 5"
+                          name="Giá cũ"
+                          dot={false}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </Box>
+                )}
+              </Box>
+            </Box>
+          )}
+
           {/* Related Products Section */}
           <Box sx={{ mb: 8 }}>
             <Typography
@@ -654,7 +782,7 @@ export default function ProductDetailPage() {
                               color: '#181D17',
                             }}
                           >
-                            ${relatedProduct.current_price}
+                            {relatedProduct.current_price.toLocaleString('vi-VN')}₫
                           </Typography>
                           <Typography
                             sx={{
@@ -665,7 +793,7 @@ export default function ProductDetailPage() {
                               color: '#707A6C',
                             }}
                           >
-                            ${relatedProduct.original_price}
+                            {relatedProduct.original_price.toLocaleString('vi-VN')}₫
                           </Typography>
                         </Box>
                       </Box>

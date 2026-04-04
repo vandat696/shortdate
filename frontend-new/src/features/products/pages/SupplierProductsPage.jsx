@@ -117,33 +117,36 @@ export default function SupplierProductsPage() {
 
   if (showForm) {
     return (
-      <Container maxWidth="lg" sx={{ py: 3 }}>
-        <Button
-          variant="outlined"
-          onClick={() => {
-            setShowForm(false);
-            setEditingProduct(null);
-            fetchProducts();
-          }}
-          sx={{ mb: 2 }}
-        >
-          ← Quay lại
-        </Button>
-        <ProductForm
-          initialData={editingProduct}
-          onSuccess={() => {
-            setShowForm(false);
-            setEditingProduct(null);
-            fetchProducts();
-          }}
-        />
-      </Container>
+      <Box sx={{ width: '100%', py: 3, overflowX: 'hidden', bgcolor: '#F7FBF0', overflow: 'hidden' }}>
+        <Box sx={{ maxWidth: 1280, mx: 'auto', px: 3 }}>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              setShowForm(false);
+              setEditingProduct(null);
+              fetchProducts();
+            }}
+            sx={{ mb: 2 }}
+          >
+            ← Quay lại
+          </Button>
+          <ProductForm
+            initialData={editingProduct}
+            onSuccess={() => {
+              setShowForm(false);
+              setEditingProduct(null);
+              fetchProducts();
+            }}
+          />
+        </Box>
+      </Box>
     );
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 3 }}>
-      <Box sx={{ mb: 3 }}>
+    <Box sx={{ width: '100%', py: 3, overflowX: 'hidden', bgcolor: '#F7FBF0', overflow: 'hidden' }}>
+      <Box sx={{ maxWidth: 1280, mx: 'auto', px: 3 }}>
+        <Box sx={{ mb: 3 }}>
         <Typography variant="h4" sx={{ mb: 2 }}>
           Quản lý sản phẩm
         </Typography>
@@ -356,6 +359,7 @@ export default function SupplierProductsPage() {
           </Box>
         </Box>
       </Dialog>
-    </Container>
+      </Box>
+    </Box>
   );
 }

@@ -139,7 +139,7 @@ export default function ProductCard({ product }) {
               color: '#181D17',
             }}
           >
-            ${product.current_price}
+            {product.current_price.toLocaleString('vi-VN')}₫
           </Typography>
           <Typography
             sx={{
@@ -151,7 +151,7 @@ export default function ProductCard({ product }) {
               color: '#BFCCBA',
             }}
           >
-            ${product.original_price}
+            {product.original_price.toLocaleString('vi-VN')}₫
           </Typography>
         </Box>
       </Box>

@@ -87,8 +87,8 @@ export default function OrderTrackingPage() {
   }
 
   return (
-    <Box sx={{ py: 3 }}>
-      <Container maxWidth="lg">
+    <Box sx={{ width: '100%', py: 3, overflowX: 'hidden', bgcolor: '#F7FBF0', overflow: 'hidden' }}>
+      <Box sx={{ maxWidth: 1280, mx: 'auto', px: 3 }}>
         <Grid container spacing={3}>
           <Grid item xs={12} md={8}>
             <Paper sx={{ p: 3 }}>
@@ -153,7 +153,7 @@ export default function OrderTrackingPage() {
             </Paper>
           </Grid>
         </Grid>
-      </Container>
+      </Box>
     </Box>
   );
 }

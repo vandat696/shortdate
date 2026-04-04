@@ -131,6 +131,31 @@ class User {
 
     return { user, supplierInfo };
   }
+
+  // Cập nhật vị trí của user (latitude, longitude, address)
+  static async updateLocation(id, locationData) {
+    const { latitude, longitude, address } = locationData;
+    
+    const query = `
+      UPDATE users 
+      SET latitude = $1,
+          longitude = $2,
+          address = $3,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = $4 
+      RETURNING id, email, latitude, longitude, address
+    `;
+    
+    const result = await pool.query(query, [latitude, longitude, address, id]);
+    return result.rows[0];
+  }
+
+  // Lấy vị trí của user
+  static async getLocation(id) {
+    const query = 'SELECT id, email, latitude, longitude, address FROM users WHERE id = $1';
+    const result = await pool.query(query, [id]);
+    return result.rows[0];
+  }
 }
 
 export default User;

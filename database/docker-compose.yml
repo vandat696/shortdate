@@ -15,6 +15,9 @@ services:
       - shortdate-db-volume:/var/lib/postgresql/data
       - ./schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
       - ./migration_002_add_profile_columns.sql:/docker-entrypoint-initdb.d/02-migration.sql
+      - ./migration_003_add_delivery_tables.sql:/docker-entrypoint-initdb.d/03-migration.sql
+      - ./migration_004_add_product_images_table.sql:/docker-entrypoint-initdb.d/04-migration.sql
+      - ./migration_005_add_location_columns.sql:/docker-entrypoint-initdb.d/05-migration.sql
     networks:
       - shortdate-network
     healthcheck:

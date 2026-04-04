@@ -1,7 +1,9 @@
-import { Box, Grid, Modal, Typography } from '@mui/material';
+import { Box, Grid, Modal, Typography, IconButton } from '@mui/material';
 import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { getImageUrl } from '../../../services/api';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
 export default function ProductImageGallery({ mainImage, thumbnails, allImages = [], discountPercentage = 38 }) {
   // If allImages provided, use all images and extract thumbnails (skip first which is main)
@@ -24,6 +26,9 @@ export default function ProductImageGallery({ mainImage, thumbnails, allImages =
   // Track which image is currently displayed
   const [currentMainImage, setCurrentMainImage] = useState(currentMainImageUrl);
   
+  // Track current image index for carousel navigation
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  
   // Track modal state for viewing all images
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -31,6 +36,26 @@ export default function ProductImageGallery({ mainImage, thumbnails, allImages =
   // Handle thumbnail click to change main image
   const handleThumbnailClick = (imageUrl) => {
     setCurrentMainImage(getImageUrl(imageUrl));
+  };
+
+  // Handle next image in carousel
+  const handleNextImage = () => {
+    if (allImages.length > 0) {
+      const nextIndex = (currentImageIndex + 1) % allImages.length;
+      setCurrentImageIndex(nextIndex);
+      const nextImage = allImages[nextIndex];
+      setCurrentMainImage(getImageUrl(nextImage.image_url || nextImage.src));
+    }
+  };
+
+  // Handle previous image in carousel
+  const handlePrevImage = () => {
+    if (allImages.length > 0) {
+      const prevIndex = (currentImageIndex - 1 + allImages.length) % allImages.length;
+      setCurrentImageIndex(prevIndex);
+      const prevImage = allImages[prevIndex];
+      setCurrentMainImage(getImageUrl(prevImage.image_url || prevImage.src));
+    }
   };
 
   return (
@@ -85,6 +110,60 @@ export default function ProductImageGallery({ mainImage, thumbnails, allImages =
             -{discountPercentage}%
           </Box>
         </Box>
+
+        {/* Previous Arrow Button - Left */}
+        {allImages.length > 1 && (
+          <IconButton
+            onClick={handlePrevImage}
+            sx={{
+              position: 'absolute',
+              left: '12px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              backgroundColor: 'rgba(255, 255, 255, 0.85)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+              zIndex: 5,
+              width: '44px',
+              height: '44px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              },
+            }}
+          >
+            <ArrowBackIcon sx={{ color: '#0D631B', fontSize: '24px' }} />
+          </IconButton>
+        )}
+
+        {/* Next Arrow Button - Right */}
+        {allImages.length > 1 && (
+          <IconButton
+            onClick={handleNextImage}
+            sx={{
+              position: 'absolute',
+              right: '12px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              backgroundColor: 'rgba(255, 255, 255, 0.85)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+              zIndex: 5,
+              width: '44px',
+              height: '44px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              },
+            }}
+          >
+            <ArrowForwardIcon sx={{ color: '#0D631B', fontSize: '24px' }} />
+          </IconButton>
+        )}
       </Box>
 
       {/* Thumbnail Gallery - Fixed width container matching main image */}
@@ -97,42 +176,55 @@ export default function ProductImageGallery({ mainImage, thumbnails, allImages =
             justifyContent: 'flex-start',
           }}
         >
-          {images.slice(0, 3).map((img, index) => {
-            const imageUrl = getImageUrl(img.image_url || img.src);
-            const imageId = img.id || index;
-            return (
-              <Box
-                key={imageId}
-                onClick={() => handleThumbnailClick(img.image_url || img.src)}
-                sx={{
-                  flex: 1,
-                  aspectRatio: '1/1',
-                  backgroundColor: '#F1F5EB',
-                  borderRadius: '16px',
-                  cursor: 'pointer',
-                  overflow: 'hidden',
-                  backgroundImage: `url(${imageUrl})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  backgroundRepeat: 'no-repeat',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  border: currentMainImage === imageUrl 
-                    ? '3px solid #0D631B' 
-                    : '2px solid rgba(13, 99, 27, 0.2)',
-                  boxShadow: currentMainImage === imageUrl
-                    ? '0px 4px 16px rgba(13, 99, 27, 0.2)'
-                    : '0px 2px 8px rgba(0, 0, 0, 0.08)',
-                  '&:hover': {
-                    boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.15)',
-                    border: currentMainImage === imageUrl
-                      ? '3px solid #0D631B'
-                      : '2px solid #0D631B80',
-                    transform: 'translateY(-4px)',
-                  },
-                }}
-              />
-            );
-          })}
+          {(() => {
+            // Calculate which 3 thumbnails to show around current image
+            const startIndex = Math.max(0, currentImageIndex - 1);
+            const endIndex = Math.min(images.length, startIndex + 3);
+            const adjustedStart = Math.max(0, endIndex - 3);
+            
+            return images.slice(adjustedStart, endIndex).map((img, sliceIndex) => {
+              const actualIndex = adjustedStart + sliceIndex;
+              const imageUrl = getImageUrl(img.image_url || img.src);
+              const imageId = img.id || actualIndex;
+              // Index in allImages is actualIndex + 1 (since allImages[0] is main image)
+              const allImagesIndex = actualIndex + 1;
+              return (
+                <Box
+                  key={imageId}
+                  onClick={() => {
+                    handleThumbnailClick(img.image_url || img.src);
+                    setCurrentImageIndex(allImagesIndex);
+                  }}
+                  sx={{
+                    flex: 1,
+                    aspectRatio: '1/1',
+                    backgroundColor: '#F1F5EB',
+                    borderRadius: '16px',
+                    cursor: 'pointer',
+                    overflow: 'hidden',
+                    backgroundImage: `url(${imageUrl})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    border: currentMainImage === imageUrl 
+                      ? '3px solid #0D631B' 
+                      : '2px solid rgba(13, 99, 27, 0.2)',
+                    boxShadow: currentMainImage === imageUrl
+                      ? '0px 4px 16px rgba(13, 99, 27, 0.2)'
+                      : '0px 2px 8px rgba(0, 0, 0, 0.08)',
+                    '&:hover': {
+                      boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.15)',
+                      border: currentMainImage === imageUrl
+                        ? '3px solid #0D631B'
+                        : '2px solid #0D631B80',
+                      transform: 'translateY(-4px)',
+                    },
+                  }}
+                />
+              );
+            });
+          })()}
           
           {/* "+X More" Button if more than 3 images */}
           {images.length > 3 && (

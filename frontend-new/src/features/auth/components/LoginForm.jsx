@@ -67,8 +67,12 @@ export default function LoginForm() {
       // Dispatch custom event để Header cập nhật
       window.dispatchEvent(new CustomEvent('authChange', { detail: { isLoggedIn: true, userType: user.userType } }));
 
-      // Redirect to home
-      navigate('/');
+      // Redirect based on user type
+      if (user.userType === 'supplier') {
+        navigate('/supplier');
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       console.error('[LoginForm] Error:', err);
       console.error('[LoginForm] Error response:', err.response?.data);

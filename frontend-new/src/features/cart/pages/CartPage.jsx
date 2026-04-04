@@ -251,7 +251,7 @@ export default function CartPage() {
 
   if (!token) {
     return (
-      <Box sx={{ minHeight: '100vh', bgcolor: '#F7FBF0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Box sx={{ bgcolor: '#F7FBF0', display: 'flex', alignItems: 'center', justifyContent: 'center', py: 3 }}>
         <Paper sx={{ p: 4, maxWidth: 400, textAlign: 'center' }}>
           <Typography sx={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: 18, mb: 2 }}>
             Bạn cần đăng nhập
@@ -269,7 +269,7 @@ export default function CartPage() {
 
   if (cartLoading) {
     return (
-      <Box sx={{ minHeight: '100vh', bgcolor: '#F7FBF0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Box sx={{ bgcolor: '#F7FBF0', display: 'flex', alignItems: 'center', justifyContent: 'center', py: 3 }}>
         <Typography sx={{ fontFamily: 'Manrope', fontWeight: 600, fontSize: 16 }}>
           Đang tải giỏ hàng...
         </Typography>
@@ -279,7 +279,7 @@ export default function CartPage() {
 
   if (cart.length === 0) {
     return (
-      <Box sx={{ minHeight: '100vh', bgcolor: '#F7FBF0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Box sx={{ bgcolor: '#F7FBF0', display: 'flex', alignItems: 'center', justifyContent: 'center', py: 3 }}>
         <Paper sx={{ p: 4, maxWidth: 400, textAlign: 'center' }}>
           <Typography sx={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: 20, mb: 2 }}>
             Giỏ hàng trống
@@ -296,10 +296,22 @@ export default function CartPage() {
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#F7FBF0', py: 3 }}>
+    <Box sx={{ 
+      width: '100%',
+      bgcolor: '#F7FBF0', 
+      py: 3,
+      overflowX: 'hidden',
+      overflow: 'hidden',
+    }}>
       {/* Urgency Banner */}
-      <Box sx={{ bgcolor: '#FFDCC6', py: 2, mb: 3, borderBottom: '2px solid #964900' }}>
-        <Box sx={{ maxWidth: 1280, mx: 'auto', px: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <Box sx={{ 
+        width: '100%',
+        bgcolor: '#FFDCC6', 
+        py: 2, 
+        mb: 3, 
+        borderBottom: '2px solid #964900' 
+      }}>
+        <Box sx={{ maxWidth: 1280, mx: 'auto', px: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box>
             <Typography sx={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: 16, color: '#964900' }}>
               Hãy hoàn tất đơn hàng ngay!
@@ -312,7 +324,7 @@ export default function CartPage() {
       </Box>
 
       {/* Main Container */}
-      <Box sx={{ maxWidth: 1280, mx: 'auto', px: 2 }}>
+      <Box sx={{ maxWidth: 1280, mx: 'auto', px: 3 }}>
         {/* Header */}
         <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e0e0e0' }}>
           <Typography sx={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: 28, color: '#181D17' }}>

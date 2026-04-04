@@ -19,10 +19,13 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../hooks/useCart.jsx';
+import { useWishlist } from '../../hooks/useWishlist.jsx';
+import logoImage from '../../assets/logo.png';
 
 export default function Header() {
   const navigate = useNavigate();
   const { itemsCount } = useCart();
+  const { count: wishlistCount } = useWishlist();
   const [anchorEl, setAnchorEl] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
@@ -106,17 +109,32 @@ export default function Header() {
           <Box
             onClick={() => navigate('/')}
             sx={{
-              fontSize: 24,
-              fontWeight: 900,
               cursor: 'pointer',
-              color: '#0D631B',
-              letterSpacing: '-1.2px',
-              fontFamily: '"Manrope","Inter",system-ui,sans-serif',
-              lineHeight: '32px',
-              width: 112,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.5,
             }}
           >
-            ShortDate
+            <img 
+              src={logoImage} 
+              alt="ShortDate Logo"
+              style={{
+                height: '48px',
+                objectFit: 'contain',
+              }}
+            />
+            <Box
+              sx={{
+                fontSize: 24,
+                fontWeight: 900,
+                color: '#0D631B',
+                letterSpacing: '-1.2px',
+                fontFamily: '"Manrope","Inter",system-ui,sans-serif',
+                lineHeight: '32px',
+              }}
+            >
+              ShortDate
+            </Box>
           </Box>
 
           {/* Nav links */}
@@ -179,17 +197,25 @@ export default function Header() {
 
           {/* Actions */}
           <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
-            <IconButton color="inherit" sx={{ color: '#0D631B' }}>
-              <Badge badgeContent={0} color="error">
-                <Favorite />
-              </Badge>
-            </IconButton>
+            {userType !== 'supplier' && (
+              <>
+                <IconButton 
+                  color="inherit" 
+                  onClick={() => navigate('/wishlist')}
+                  sx={{ color: '#0D631B' }}
+                >
+                  <Badge badgeContent={wishlistCount} color="error">
+                    <Favorite />
+                  </Badge>
+                </IconButton>
 
-            <IconButton color="inherit" onClick={() => navigate('/cart')} sx={{ color: '#0D631B' }}>
-              <Badge badgeContent={itemsCount} color="error">
-                <ShoppingCart />
-              </Badge>
-            </IconButton>
+                <IconButton color="inherit" onClick={() => navigate('/cart')} sx={{ color: '#0D631B' }}>
+                  <Badge badgeContent={itemsCount} color="error">
+                    <ShoppingCart />
+                  </Badge>
+                </IconButton>
+              </>
+            )}
 
             <IconButton color="inherit" onClick={handleMenuOpen} sx={{ color: '#0D631B' }}>
               <AccountCircle sx={{ fontSize: 28 }} />
@@ -204,11 +230,13 @@ export default function Header() {
                   Đăng Ký
                 </MenuItem>
               ] : [
-                <MenuItem key="profile" onClick={() => { handleMenuClose(); navigate('/profile'); }}>
-                  Trang Cá Nhân
-                </MenuItem>,
+                userType !== 'supplier' ? (
+                  <MenuItem key="profile" onClick={() => { handleMenuClose(); navigate('/profile'); }}>
+                    Trang Cá Nhân
+                  </MenuItem>
+                ) : null,
                 userType === 'supplier' ? (
-                  <MenuItem key="shop" onClick={() => { handleMenuClose(); navigate('/supplier/products'); }}>
+                  <MenuItem key="shop" onClick={() => { handleMenuClose(); navigate('/supplier'); }}>
                     Quản Lý Cửa Hàng
                   </MenuItem>
                 ) : null,

@@ -101,39 +101,44 @@ export default function OrderDetailPage() {
 
   if (loading) {
     return (
-      <Container maxWidth="lg" sx={{ py: 4, display: 'flex', justifyContent: 'center' }}>
+      <Box sx={{ width: '100%', py: 4, overflowX: 'hidden', bgcolor: '#F7FBF0', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <CircularProgress />
-      </Container>
+      </Box>
     );
   }
 
   if (error) {
     return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Alert severity="error">{error}</Alert>
-        <Button
-          variant="contained"
-          sx={{ mt: 2 }}
-          onClick={() => navigate('/')}
-        >
-          Về trang chủ
-        </Button>
-      </Container>
+      <Box sx={{ width: '100%', py: 4, overflowX: 'hidden', bgcolor: '#F7FBF0' }}>
+        <Box sx={{ maxWidth: 1280, mx: 'auto', px: 3 }}>
+          <Alert severity="error">{error}</Alert>
+          <Button
+            variant="contained"
+            sx={{ mt: 2 }}
+            onClick={() => navigate('/')}
+          >
+            Về trang chủ
+          </Button>
+        </Box>
+      </Box>
     );
   }
 
   if (!order) {
     return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Alert severity="warning">Không tìm thấy đơn hàng</Alert>
-      </Container>
+      <Box sx={{ width: '100%', py: 4, overflowX: 'hidden', bgcolor: '#F7FBF0' }}>
+        <Box sx={{ maxWidth: 1280, mx: 'auto', px: 3 }}>
+          <Alert severity="warning">Không tìm thấy đơn hàng</Alert>
+        </Box>
+      </Box>
     );
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      {/* Header */}
-      <Paper sx={{ p: 3, mb: 3, backgroundColor: '#f5f5f5' }}>
+    <Box sx={{ width: '100%', py: 4, overflowX: 'hidden', bgcolor: '#F7FBF0', overflow: 'hidden' }}>
+      <Box sx={{ maxWidth: 1280, mx: 'auto', px: 3 }}>
+        {/* Header */}
+        <Paper sx={{ p: 3, mb: 3, backgroundColor: '#f5f5f5' }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Typography variant="h5" sx={{ fontWeight: 700 }}>
             Chi Tiết Đơn Hàng
@@ -316,6 +321,7 @@ export default function OrderDetailPage() {
           Xem Tất Cả Đơn Hàng
         </Button>
       </Box>
-    </Container>
+      </Box>
+    </Box>
   );
 }

@@ -175,9 +175,9 @@ export const updateProfile = async (req, res) => {
 export const updateSupplierProfile = async (req, res) => {
   try {
     const userId = req.user.userId;
-    const { user_type } = req.user;
+    const { userType } = req.user;
 
-    if (user_type !== 'supplier') {
+    if (userType !== 'supplier') {
       return res.status(403).json({ error: 'Only suppliers can update supplier profile' });
     }
 
@@ -252,5 +252,186 @@ export const verifyEmail = async (req, res) => {
   } catch (err) {
     console.error('Verify email error:', err.message);
     res.status(500).json({ error: 'Email verification failed', message: err.message });
+  }
+};
+
+// CẬP NHẬT VỊ TRÍ NGƯỜI DÙNG (LOCATION)
+export const updateUserLocation = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { latitude, longitude, address } = req.body;
+
+    // Kiểm tra dữ liệu đầu vào
+    if (!latitude || !longitude || !address) {
+      return res.status(400).json({ 
+        error: 'Latitude, longitude, and address are required' 
+      });
+    }
+
+    // Kiểm tra giá trị hợp lệ
+    if (latitude < -90 || latitude > 90) {
+      return res.status(400).json({ error: 'Invalid latitude (must be between -90 and 90)' });
+    }
+    if (longitude < -180 || longitude > 180) {
+      return res.status(400).json({ error: 'Invalid longitude (must be between -180 and 180)' });
+    }
+
+    const updatedLocation = await User.updateLocation(userId, {
+      latitude,
+      longitude,
+      address
+    });
+
+    // Convert latitude/longitude to numbers
+    const formattedLocation = {
+      ...updatedLocation,
+      latitude: parseFloat(updatedLocation.latitude),
+      longitude: parseFloat(updatedLocation.longitude)
+    };
+
+    res.status(200).json({
+      message: 'User location updated successfully',
+      location: formattedLocation
+    });
+  } catch (err) {
+    console.error('Update user location error:', err.message);
+    res.status(500).json({ error: 'Failed to update user location', message: err.message });
+  }
+};
+
+// LẤY VỊ TRÍ NGƯỜI DÙNG
+export const getUserLocation = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const location = await User.getLocation(userId);
+
+    if (!location || !location.latitude) {
+      return res.status(200).json({
+        message: 'No location set',
+        location: null
+      });
+    }
+
+    // Convert latitude/longitude to numbers
+    const formattedLocation = {
+      ...location,
+      latitude: parseFloat(location.latitude),
+      longitude: parseFloat(location.longitude)
+    };
+
+    res.status(200).json({
+      message: 'User location retrieved successfully',
+      location: formattedLocation
+    });
+  } catch (err) {
+    console.error('Get user location error:', err.message);
+    res.status(500).json({ error: 'Failed to get user location', message: err.message });
+  }
+};
+
+// CẬP NHẬT VỊ TRÍ NHÀ CUNG CẤP
+export const updateSupplierLocation = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { userType } = req.user;
+
+    if (userType !== 'supplier') {
+      return res.status(403).json({ error: 'Only suppliers can update supplier location' });
+    }
+
+    const { latitude, longitude, address } = req.body;
+
+    // Kiểm tra dữ liệu đầu vào
+    if (!latitude || !longitude || !address) {
+      return res.status(400).json({ 
+        error: 'Latitude, longitude, and address are required' 
+      });
+    }
+
+    // Kiểm tra giá trị hợp lệ
+    if (latitude < -90 || latitude > 90) {
+      return res.status(400).json({ error: 'Invalid latitude (must be between -90 and 90)' });
+    }
+    if (longitude < -180 || longitude > 180) {
+      return res.status(400).json({ error: 'Invalid longitude (must be between -180 and 180)' });
+    }
+
+    // Kiểm tra supplier có tồn tại trong supplier_details không
+    let supplierRecord = await SupplierDetails.findByUserId(userId);
+
+    let updatedLocation;
+    if (!supplierRecord) {
+      // Nếu chưa có, tạo mới với vị trí
+      updatedLocation = await SupplierDetails.create({
+        user_id: userId,
+        company_name: '',
+        tax_id: '',
+        warehouse_address: address,
+        contact_phone: '',
+        contact_email: '',
+        latitude,
+        longitude,
+        supplier_address: address
+      });
+    } else {
+      // Nếu có rồi, cập nhật vị trí
+      updatedLocation = await SupplierDetails.updateLocation(userId, {
+        latitude,
+        longitude,
+        address
+      });
+    }
+
+    // Convert latitude/longitude to numbers
+    const formattedLocation = {
+      ...updatedLocation,
+      latitude: parseFloat(updatedLocation.latitude),
+      longitude: parseFloat(updatedLocation.longitude)
+    };
+
+    res.status(200).json({
+      message: 'Supplier location updated successfully',
+      location: formattedLocation
+    });
+  } catch (err) {
+    console.error('Update supplier location error:', err.message);
+    res.status(500).json({ error: 'Failed to update supplier location', message: err.message });
+  }
+};
+
+// LẤY VỊ TRÍ NHÀ CUNG CẤP
+export const getSupplierLocation = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { userType } = req.user;
+
+    if (userType !== 'supplier') {
+      return res.status(403).json({ error: 'Only suppliers can get supplier location' });
+    }
+
+    const location = await SupplierDetails.getLocation(userId);
+
+    if (!location || !location.latitude) {
+      return res.status(200).json({
+        message: 'No location set',
+        location: null
+      });
+    }
+
+    // Convert latitude/longitude to numbers
+    const formattedLocation = {
+      ...location,
+      latitude: parseFloat(location.latitude),
+      longitude: parseFloat(location.longitude)
+    };
+
+    res.status(200).json({
+      message: 'Supplier location retrieved successfully',
+      location: formattedLocation
+    });
+  } catch (err) {
+    console.error('Get supplier location error:', err.message);
+    res.status(500).json({ error: 'Failed to get supplier location', message: err.message });
   }
 };

@@ -1,14 +1,17 @@
 import { Box, Button, TextField, Typography } from '@mui/material';
 import { useState } from 'react';
 import PropTypes from 'prop-types';
-import { wishlistService } from '../../../services/api';
 import { useCart } from '../../../hooks/useCart';
+import { useWishlist } from '../../../hooks/useWishlist';
 
 export default function ProductControls({ productId, stock_quantity, onAddToCart }) {
   const [quantity, setQuantity] = useState(1);
-  const [isSaved, setIsSaved] = useState(false);
   const [loading, setLoading] = useState(false);
   const { addToCart, fetchCart } = useCart();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+
+  // Check realtime if product is in wishlist
+  const isSaved = isInWishlist(productId);
 
   const handleQuantityChange = (e) => {
     const val = parseInt(e.target.value, 10);
@@ -44,21 +47,15 @@ export default function ProductControls({ productId, stock_quantity, onAddToCart
     try {
       setLoading(true);
       if (isSaved) {
-        await wishlistService.removeFromWishlist(productId);
-        setIsSaved(false);
+        await removeFromWishlist(productId);
         alert('✓ Đã xóa khỏi danh sách lưu');
       } else {
-        await wishlistService.addToWishlist(productId);
-        setIsSaved(true);
+        await addToWishlist(productId);
         alert('✓ Đã lưu sản phẩm');
       }
     } catch (error) {
       console.error('Error toggling wishlist:', error);
-      if (error.response?.status === 401) {
-        alert('Vui lòng đăng nhập để lưu sản phẩm');
-      } else {
-        alert('Lỗi: ' + (error.response?.data?.error || 'Không thể lưu sản phẩm'));
-      }
+      alert('Lỗi: ' + (error?.message || 'Không thể lưu sản phẩm'));
     } finally {
       setLoading(false);
     }
@@ -126,8 +123,8 @@ export default function ProductControls({ productId, stock_quantity, onAddToCart
           disabled={loading}
           variant="contained"
           sx={{
-            backgroundColor: isSaved ? '#0D631B' : '#EBEFE5',
-            color: isSaved ? '#FFFFFF' : '#40493D',
+            backgroundColor: isSaved ? '#EBEFE5' : '#0D631B',
+            color: isSaved ? '#40493D' : '#FFFFFF',
             fontFamily: '"Manrope","Inter",system-ui,sans-serif',
             fontWeight: 800,
             fontSize: '16px',
@@ -137,11 +134,11 @@ export default function ProductControls({ productId, stock_quantity, onAddToCart
             gap: 1,
             transition: 'all 0.3s ease',
             '&:hover': {
-              backgroundColor: isSaved ? '#0B5717' : '#E5EADF',
+              backgroundColor: isSaved ? '#E5EADF' : '#0B5717',
             },
           }}
         >
-          {isSaved ? '❤️ Thích' : '🤍 Bỏ thích'}
+          {isSaved ? '❤️ Xóa' : '🤍 Thích'}
         </Button>
         <Button
           variant="contained"

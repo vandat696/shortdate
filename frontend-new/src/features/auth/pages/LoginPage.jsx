@@ -9,8 +9,7 @@ export default function LoginPage() {
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          minHeight: '100vh',
-          py: 4,
+          py: 8,
         }}
       >
         <Paper

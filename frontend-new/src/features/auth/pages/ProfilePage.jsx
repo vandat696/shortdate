@@ -23,7 +23,9 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
 import api, { getImageUrl } from '../../../services/api';
+import LocationPicker from '../../../components/common/LocationPicker';
 import axios from 'axios';
 
 
@@ -71,12 +73,28 @@ export default function ProfilePage() {
   });
   const [loadingAddresses, setLoadingAddresses] = useState(false);
 
+  // Location State
+  const [userLocation, setUserLocation] = useState(null);
+  const [supplierLocation, setSupplierLocation] = useState(null);
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
+  const [savingLocation, setSavingLocation] = useState(false);
+  const [loadingLocation, setLoadingLocation] = useState(false);
+
   useEffect(() => {
+    // Check if user is authenticated
+    if (!token || !userType) {
+      navigate('/login');
+      return;
+    }
+    
     fetchProfile();
     fetchAddresses();
-  }, []);
+    fetchLocation();
+  }, [token, userType, navigate]);
 
   const fetchProfile = async () => {
+    if (!token) return;
+    
     try {
       setLoading(true);
       const response = await api.get('/auth/profile');
@@ -84,11 +102,11 @@ export default function ProfilePage() {
       const supplierDetails = response.data.supplier_details;
 
       setPersonalData({
-        first_name: user.first_name || '',
-        last_name: user.last_name || '',
-        email: user.email || '',
-        phone: user.phone || '',
-        avatar_url: user.avatar_url || ''
+        first_name: user?.first_name || '',
+        last_name: user?.last_name || '',
+        email: user?.email || '',
+        phone: user?.phone || '',
+        avatar_url: user?.avatar_url || ''
       });
 
       // Load supplier details if available
@@ -102,9 +120,10 @@ export default function ProfilePage() {
         });
       }
     } catch (err) {
+      console.error('Error fetching profile:', err);
       setMessage({
         type: 'error',
-        text: err.response?.data?.error || 'Lỗi khi tải thông tin'
+        text: 'Lỗi khi tải thông tin'
       });
     } finally {
       setLoading(false);
@@ -112,16 +131,81 @@ export default function ProfilePage() {
   };
 
   const fetchAddresses = async () => {
+    if (!token) return;
+    
     try {
       setLoadingAddresses(true);
       const response = await axios.get(`${API_BASE_URL}/addresses`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setAddresses(response.data);
+      setAddresses(response.data || []);
     } catch (err) {
       console.error('Error fetching addresses:', err);
+      setAddresses([]);
     } finally {
       setLoadingAddresses(false);
+    }
+  };
+
+  // Fetch user/supplier location
+  const fetchLocation = async () => {
+    if (!token) return;
+    
+    try {
+      setLoadingLocation(true);
+      if (userType === 'supplier') {
+        try {
+          const response = await api.get('/auth/supplier-location');
+          if (response.data?.location) {
+            setSupplierLocation(response.data.location);
+          }
+        } catch (err) {
+          console.error('Error fetching supplier location:', err);
+        }
+      } else {
+        try {
+          const response = await api.get('/auth/location');
+          if (response.data?.location) {
+            setUserLocation(response.data.location);
+          }
+        } catch (err) {
+          console.error('Error fetching user location:', err);
+        }
+      }
+    } finally {
+      setLoadingLocation(false);
+    }
+  };
+
+  // Save location (for both users and suppliers)
+  const handleLocationSelected = async (location) => {
+    try {
+      setSavingLocation(true);
+      const endpoint = userType === 'supplier' ? '/auth/supplier-location' : '/auth/location';
+      const response = await api.put(endpoint, {
+        latitude: location.lat,
+        longitude: location.lng,
+        address: location.address
+      });
+      
+      if (userType === 'supplier') {
+        setSupplierLocation(response.data.location);
+      } else {
+        setUserLocation(response.data.location);
+      }
+      
+      setShowLocationPicker(false);
+      setMessage({
+        type: 'success',
+        text: 'Cập nhật vị trí thành công'
+      });
+    } catch (err) {
+      setMessage({
+        type: 'error',
+        text: err.response?.data?.error || 'Lỗi khi lưu vị trí'
+      });
+    } finally {
+      setSavingLocation(false);
     }
   };
 
@@ -265,7 +349,7 @@ export default function ProfilePage() {
     }
   };
 
-  if (loading) {
+  if (!token || !userType || loading) {
     return (
       <Container maxWidth="lg" sx={{ py: 5, display: 'flex', justifyContent: 'center' }}>
         <CircularProgress />
@@ -274,12 +358,13 @@ export default function ProfilePage() {
   }
 
   return (
-    <Container maxWidth="md" sx={{ py: 3 }}>
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" sx={{ fontWeight: 700 }}>
-          Trang cá nhân
-        </Typography>
-      </Box>
+    <Box sx={{ width: '100%', py: 3, overflowX: 'hidden', bgcolor: '#F7FBF0', overflow: 'hidden' }}>
+      <Box sx={{ maxWidth: 680, mx: 'auto', px: 3 }}>
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="h4" sx={{ fontWeight: 700 }}>
+            Trang cá nhân
+          </Typography>
+        </Box>
 
       {message && (
         <Alert severity={message.type} sx={{ mb: 2 }}>
@@ -584,6 +669,103 @@ export default function ProfilePage() {
               </Button>
             </Box>
           )}
+
+          {/* Divider */}
+          <Box sx={{ borderTop: '1px solid #BFCABA', my: 4 }} />
+
+          {/* Vị Trí (Map Location) */}
+          <Box>
+            <Typography variant="h5" sx={{ fontWeight: 700, mb: 3, color: '#181D17' }}>
+              📍 Vị trí của {userType === 'supplier' ? 'cửa hàng' : 'bạn'}
+            </Typography>
+
+            {loadingLocation ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+                <CircularProgress />
+              </Box>
+            ) : userType === 'supplier' ? (
+              // For Suppliers
+              supplierLocation && supplierLocation.latitude ? (
+                <Card sx={{ backgroundColor: 'transparent', border: '2px solid #0D631B', borderRadius: '12px', mb: 2 }}>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                      <Box>
+                        <Typography sx={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: 16, color: '#181D17', mb: 1 }}>
+                          📍 {supplierLocation.company_name ? supplierLocation.company_name : 'Vị trí cửa hàng'}
+                        </Typography>
+                        <Typography sx={{ fontFamily: 'Inter', fontSize: 14, color: '#40493D', mb: 0.5 }}>
+                          {supplierLocation.supplier_address ? supplierLocation.supplier_address : 'Không có địa chỉ'}
+                        </Typography>
+                        <Typography sx={{ fontFamily: 'Inter', fontSize: 12, color: '#999' }}>
+                          Tọa độ: {Number(supplierLocation.latitude)?.toFixed(6) || '0'}, {Number(supplierLocation.longitude)?.toFixed(6) || '0'}
+                        </Typography>
+                      </Box>
+                      <Button
+                        onClick={() => setShowLocationPicker(true)}
+                        sx={{ color: '#0D631B', textTransform: 'none' }}
+                      >
+                        <EditIcon />
+                      </Button>
+                    </Box>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Typography sx={{ textAlign: 'center', py: 3, color: '#707A6C', mb: 2 }}>
+                  Chưa có vị trí. Vui lòng chọn vị trí chi nhánh trên bản đồ.
+                </Typography>
+              )
+            ) : (
+              // For Buyers
+              userLocation && userLocation.latitude ? (
+                <Card sx={{ backgroundColor: 'transparent', border: '2px solid #0D631B', borderRadius: '12px', mb: 2 }}>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                      <Box>
+                        <Typography sx={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: 16, color: '#181D17', mb: 1 }}>
+                          📍 Vị trí của bạn
+                        </Typography>
+                        <Typography sx={{ fontFamily: 'Inter', fontSize: 14, color: '#40493D', mb: 0.5 }}>
+                          {userLocation.address ? userLocation.address : 'Không có địa chỉ'}
+                        </Typography>
+                        <Typography sx={{ fontFamily: 'Inter', fontSize: 12, color: '#999' }}>
+                          Tọa độ: {Number(userLocation.latitude)?.toFixed(6) || '0'}, {Number(userLocation.longitude)?.toFixed(6) || '0'}
+                        </Typography>
+                      </Box>
+                      <Button
+                        onClick={() => setShowLocationPicker(true)}
+                        sx={{ color: '#0D631B', textTransform: 'none' }}
+                      >
+                        <EditIcon />
+                      </Button>
+                    </Box>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Typography sx={{ textAlign: 'center', py: 3, color: '#707A6C', mb: 2 }}>
+                  Chưa có vị trí. Vui lòng chọn vị trí trên bản đồ.
+                </Typography>
+              )
+            )}
+
+            <Button
+              variant="contained"
+              fullWidth
+              onClick={() => setShowLocationPicker(true)}
+              sx={{
+                backgroundColor: '#0D631B',
+                color: '#FFFFFF',
+                '&:hover': { backgroundColor: '#0B5717' },
+                '&:disabled': { backgroundColor: '#0D631B', opacity: 0.6, color: '#FFFFFF' },
+                textTransform: 'none',
+                fontSize: '14px',
+                fontWeight: 600,
+                py: 2,
+                borderRadius: '8px'
+              }}
+            >
+              {userLocation || supplierLocation ? '🔄 Cập nhật vị trí' : '📍 Chọn vị trí trên bản đồ'}
+            </Button>
+          </Box>
         </CardContent>
       </Card>
 
@@ -708,6 +890,50 @@ export default function ProfilePage() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Container>
+
+      {/* Location Picker Dialog */}
+      <Dialog
+        open={showLocationPicker}
+        onClose={() => setShowLocationPicker(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: { borderRadius: '12px' }
+        }}
+      >
+        <DialogTitle sx={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: 18, color: '#181D17' }}>
+          📍 Chọn vị trí trên bản đồ
+        </DialogTitle>
+        <DialogContent sx={{ py: 2 }}>
+          {savingLocation ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 5 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <LocationPicker
+              onLocationSelected={handleLocationSelected}
+              initialLocation={
+                userType === 'supplier'
+                  ? supplierLocation?.latitude && supplierLocation?.longitude 
+                    ? { lat: supplierLocation.latitude, lng: supplierLocation.longitude, address: supplierLocation.supplier_address } 
+                    : null
+                  : userLocation?.latitude && userLocation?.longitude 
+                    ? { lat: userLocation.latitude, lng: userLocation.longitude, address: userLocation.address } 
+                    : null
+              }
+            />
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button
+            onClick={() => setShowLocationPicker(false)}
+            sx={{ color: '#707A6C', textTransform: 'none' }}
+          >
+            Hủy
+          </Button>
+        </DialogActions>
+      </Dialog>
+      </Box>
+    </Box>
   );
 }

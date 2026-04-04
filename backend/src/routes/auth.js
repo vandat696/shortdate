@@ -14,4 +14,10 @@ router.get('/profile', authMiddleware, authController.getProfile);
 router.put('/profile', authMiddleware, authController.updateProfile);
 router.put('/supplier-profile', authMiddleware, authController.updateSupplierProfile);
 
+// Location routes (cần token)
+router.put('/location', authMiddleware, authController.updateUserLocation);
+router.get('/location', authMiddleware, authController.getUserLocation);
+router.put('/supplier-location', authMiddleware, authController.updateSupplierLocation);
+router.get('/supplier-location', authMiddleware, authController.getSupplierLocation);
+
 export default router;

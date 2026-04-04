@@ -118,8 +118,8 @@ export default function SearchPage() {
   };
 
   return (
-    <Box sx={{ py: 3 }}>
-      <Container maxWidth="lg">
+    <Box sx={{ width: '100%', py: 3, overflowX: 'hidden', bgcolor: '#F7FBF0', overflow: 'hidden' }}>
+      <Box sx={{ maxWidth: 1280, mx: 'auto', px: 3 }}>
         <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>
           Kết quả tìm kiếm{q ? ` cho "${q}"` : ''}
         </Typography>
@@ -249,7 +249,7 @@ export default function SearchPage() {
             )}
           </Grid>
         </Grid>
-      </Container>
+      </Box>
     </Box>
   );
 }

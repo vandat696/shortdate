@@ -95,7 +95,7 @@ export default function BundleCard({ title, description, price, bgColor, imageBg
             color: priceColor,
           }}
         >
-          ${price}
+          {price.toLocaleString('vi-VN')}₫
         </Typography>
         <Button
           variant="contained"

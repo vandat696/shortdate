@@ -2,6 +2,7 @@ import { Box, Button, Container, Grid, Typography, CircularProgress } from '@mui
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
+import HeroSalesCarousel from '../components/HeroSalesCarousel';
 import CategoriesSection from '../components/CategoriesSection';
 import BundlesSection from '../components/BundlesSection';
 import LocalProductCard from '../../../components/common/LocalProductCard';
@@ -75,13 +76,13 @@ export default function HomePage() {
   const ss = String(secondsLeft % 60).padStart(2, '0');
 
   return (
-    <Box sx={{ width: '100%', background: '#F7FBF0' }}>
+    <Box sx={{ width: '100%', background: '#F7FBF0', overflowX: 'hidden' }}>
       <Container
         maxWidth={false}
         sx={{
           width: '100%',
           maxWidth: 1280,
-          px: 0,
+          px: 3,
           pb: '9px',
           display: 'flex',
           flexDirection: 'column',
@@ -93,8 +94,14 @@ export default function HomePage() {
       >
         <Box sx={{ width: '100%', pt: '96px', display: 'flex', flexDirection: 'column', gap: '64px' }}>
           {/* Hero Section: Editorial Layering */}
-          <Box sx={{ width: '100%', px: 3 }}>
-            <Box sx={{ width: '100%', height: 500, position: 'relative' }}>
+          <Box sx={{ width: '100%', position: 'relative' }}>
+            {/* Carousel - Positioned absolutely on top */}
+            <Box sx={{ position: 'absolute', top: 0, right: 0, width: { xs: '100%', md: '50%' }, height: 450, zIndex: 100 }}>
+              <HeroSalesCarousel products={products} />
+            </Box>
+
+            {/* Text Content - Behind carousel */}
+            <Box sx={{ width: '100%', height: 450, position: 'relative', zIndex: 1 }}>
               <Grid container spacing={4} sx={{ height: '100%' }}>
                 <Grid item xs={12} md={5} sx={{ display: 'flex', alignItems: 'center' }}>
                   <Box>
@@ -132,31 +139,7 @@ export default function HomePage() {
                   </Box>
                 </Grid>
 
-                <Grid item xs={12} md={7} sx={{ position: 'relative' }}>
-                  <Box sx={{ position: 'absolute', inset: 0 }}>
-                    <Box sx={{ position: 'absolute', left: -26, right: -9, top: -25, bottom: 0, bgcolor: '#E5EADF', opacity: 0.5, borderRadius: 6, transform: 'rotate(-2deg)' }} />
-                    <Box
-                      sx={{
-                        position: 'relative',
-                        width: '100%',
-                        height: 500,
-                        borderRadius: 5,
-                        overflow: 'hidden',
-                        boxShadow: '0px 25px 50px -12px rgba(0,0,0,0.25)',
-                        background: 'linear-gradient(135deg, #E0E4DA 0%, #A3F69C 55%, #0D631B 100%)',
-                      }}
-                    />
-
-                    <Box sx={{ position: 'absolute', left: -24, bottom: -24, width: 204, height: 124, bgcolor: '#964900', borderRadius: 4, p: 3, boxShadow: '0px 20px 25px -5px rgba(0, 0, 0, 0.1), 0px 8px 10px -6px rgba(0, 0, 0, 0.1)' }}>
-                      <Typography sx={{ fontFamily: '"Manrope","Inter",system-ui,sans-serif', fontWeight: 900, fontSize: 36, lineHeight: '40px', color: '#fff' }}>
-                        70%
-                      </Typography>
-                      <Typography sx={{ mt: 0.5, fontFamily: '"Inter",system-ui,sans-serif', fontWeight: 700, fontSize: 14, letterSpacing: '-0.7px', textTransform: 'uppercase', color: '#fff', opacity: 0.8 }}>
-                        ƯU ĐÃI
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Grid>
+                <Grid item xs={12} md={7} />
               </Grid>
             </Box>
           </Box>
@@ -231,8 +214,8 @@ export default function HomePage() {
           <BundlesSection />
 
           {/* Near You Section - Enhanced */}
-          <Box sx={{ width: '100%', px: 3, py: '128px' }}>
-            <Container maxWidth={false} sx={{ maxWidth: 1280, px: 0 }}>
+          <Box sx={{ width: '100%', py: '128px' }}>
+            <Container maxWidth={false} sx={{ maxWidth: 1280, px: 3 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
                 <Box
                   sx={{
@@ -321,7 +304,8 @@ export default function HomePage() {
                     {nearYouProducts.slice(0, 4).map((product, idx) => (
                       <Grid item xs={12} key={`near-${idx}`}>
                         <LocalProductCard
-                          image=""
+                          productId={product.id}
+                          image={product.image_url}
                           category={product.category || 'Fresh'}
                           name={product.name}
                           price={product.current_price}

@@ -9,8 +9,7 @@ export default function RegisterPage() {
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          minHeight: '100vh',
-          py: 4,
+          py: 8,
         }}
       >
         <Paper

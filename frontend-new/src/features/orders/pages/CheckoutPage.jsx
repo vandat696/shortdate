@@ -26,6 +26,7 @@ import PaymentIcon from '@mui/icons-material/Payment';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { useAuth } from '../../../hooks/useAuth';
 import { useCart } from '../../../hooks/useCart.jsx';
+import LocationPicker from '../../../components/common/LocationPicker';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -45,6 +46,8 @@ export default function CheckoutPage() {
   const [deliveryMethod, setDeliveryMethod] = useState('express');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [showMapPicker, setShowMapPicker] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState(null);
 
   // PDF: “Complete order in 05:00 minutes to secure this price and inventory”
   const [secondsLeft, setSecondsLeft] = useState(5 * 60);
@@ -132,8 +135,10 @@ export default function CheckoutPage() {
     <Box sx={{ 
       display: 'flex', 
       flexDirection: 'column',
-      minHeight: '100vh',
-      bgcolor: '#F7FBF0'
+      width: '100%',
+      bgcolor: '#F7FBF0',
+      overflowX: 'hidden',
+      overflow: 'hidden'
     }}>
       {/* Header */}
       <Box sx={{ 
@@ -504,76 +509,103 @@ export default function CheckoutPage() {
                   </Typography>
                 </Box>
 
-                <Box sx={{ position: 'relative', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                  {/* Selected Address */}
-                  <Box sx={{ 
-                    padding: '16px',
-                    bgcolor: '#FFFFFF',
-                    border: '2px solid #0D631B',
-                    borderRadius: '12px',
-                    position: 'relative'
-                  }}>
-                    <Typography sx={{ 
-                      fontFamily: 'Inter',
-                      fontWeight: 700,
-                      fontSize: '14px',
-                      color: '#181D17',
-                      mb: 1
-                    }}>
-                      Nhà
-                    </Typography>
-                    <Typography sx={{ 
-                      fontFamily: 'Inter',
-                      fontWeight: 400,
-                      fontSize: '12px',
-                      color: '#40493D',
-                      mb: 0.5
-                    }}>
-                      123 Green Lane, Eco District
-                    </Typography>
-                    <Typography sx={{ 
-                      fontFamily: 'Inter',
-                      fontWeight: 400,
-                      fontSize: '12px',
-                      color: '#40493D'
-                    }}>
-                      Quận 1, TP.HCM
-                    </Typography>
-                    <Box sx={{ 
-                      position: 'absolute',
-                      right: '17px',
-                      top: '17px',
-                      width: '18px',
-                      height: '18px',
-                      bgcolor: '#0D631B',
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}>
-                      <Box sx={{ width: '6px', height: '6px', bgcolor: 'white', borderRadius: '50%' }} />
-                    </Box>
+                {showMapPicker ? (
+                  <Box sx={{ gridColumn: '1 / -1' }}>
+                    <LocationPicker 
+                      onLocationSelected={(location) => {
+                        setSelectedLocation(location);
+                        setShippingAddress(location.address);
+                        setShowMapPicker(false);
+                      }}
+                    />
                   </Box>
+                ) : (
+                  <Box sx={{ position: 'relative', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    {/* Selected Address */}
+                    <Box sx={{ 
+                      padding: '16px',
+                      bgcolor: '#FFFFFF',
+                      border: '2px solid #0D631B',
+                      borderRadius: '12px',
+                      position: 'relative'
+                    }}>
+                      <Typography sx={{ 
+                        fontFamily: 'Inter',
+                        fontWeight: 700,
+                        fontSize: '14px',
+                        color: '#181D17',
+                        mb: 1
+                      }}>
+                        📍 {selectedLocation ? 'Vị Trí Đã Chọn' : 'Nhà'}
+                      </Typography>
+                      <Typography sx={{ 
+                        fontFamily: 'Inter',
+                        fontWeight: 400,
+                        fontSize: '12px',
+                        color: '#40493D',
+                        mb: 0.5
+                      }}>
+                        {selectedLocation?.address || '123 Green Lane, Eco District'}
+                      </Typography>
+                      {selectedLocation && (
+                        <Typography sx={{ 
+                          fontFamily: 'Inter',
+                          fontWeight: 400,
+                          fontSize: '10px',
+                          color: '#999'
+                        }}>
+                          {selectedLocation.lat.toFixed(4)}, {selectedLocation.lng.toFixed(4)}
+                        </Typography>
+                      )}
+                      {!selectedLocation && (
+                        <Typography sx={{ 
+                          fontFamily: 'Inter',
+                          fontWeight: 400,
+                          fontSize: '12px',
+                          color: '#40493D'
+                        }}>
+                          Quận 1, TP.HCM
+                        </Typography>
+                      )}
+                      <Box sx={{ 
+                        position: 'absolute',
+                        right: '17px',
+                        top: '17px',
+                        width: '18px',
+                        height: '18px',
+                        bgcolor: '#0D631B',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <Box sx={{ width: '6px', height: '6px', bgcolor: 'white', borderRadius: '50%' }} />
+                      </Box>
+                    </Box>
 
-                  {/* Add Address Button */}
-                  <Button variant="outlined" sx={{ 
-                    borderStyle: 'dashed',
-                    borderColor: '#BFCABA',
-                    borderRadius: '12px',
-                    padding: '32px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '8px',
-                    color: '#0D631B',
-                    textTransform: 'none',
-                    fontFamily: 'Inter',
+                    {/* Add Address Button */}
+                    <Button 
+                      variant="outlined" 
+                      onClick={() => setShowMapPicker(true)}
+                      sx={{ 
+                        borderStyle: 'dashed',
+                        borderColor: '#BFCABA',
+                        borderRadius: '12px',
+                        padding: '32px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '8px',
+                        color: '#0D631B',
+                        textTransform: 'none',
+                        fontFamily: 'Inter',
                     fontWeight: 700,
                     fontSize: '14px'
                   }}>
                     📍 Thêm Địa Chỉ
                   </Button>
                 </Box>
+            )}
               </Box>
 
               {/* Delivery Method */}
@@ -1045,7 +1077,7 @@ export default function CheckoutPage() {
                       fontSize: '12px',
                       color: '#181D17'
                     }}>
-                      Saved Items (12)
+                      Danh Sách Lưu (12)
                     </Typography>
                   </Box>
                   <Box sx={{ width: '4px', height: '6px', bgcolor: '#181D17' }} />
@@ -1091,7 +1123,7 @@ export default function CheckoutPage() {
               letterSpacing: '0.3px',
               textTransform: 'uppercase'
             }}>
-              © 2024 ShortDate. Every bite counts.
+              © 2024 ShortDate. Mỗi miếng đều có ý nghĩa.
             </Typography>
           </Box>
 
@@ -1106,7 +1138,7 @@ export default function CheckoutPage() {
               textTransform: 'uppercase',
               mb: 2
             }}>
-              Policies
+              Chính Sách
             </Typography>
             <Stack spacing={1}>
               <Typography sx={{ 
@@ -1118,7 +1150,7 @@ export default function CheckoutPage() {
                 textTransform: 'uppercase',
                 cursor: 'pointer'
               }}>
-                Shipping Policy
+                Chính Sách Giao Hàng
               </Typography>
               <Typography sx={{ 
                 fontFamily: 'Inter',
@@ -1129,7 +1161,7 @@ export default function CheckoutPage() {
                 textTransform: 'uppercase',
                 cursor: 'pointer'
               }}>
-                Privacy
+                Quyền Riêng Tư
               </Typography>
             </Stack>
           </Box>
@@ -1145,7 +1177,7 @@ export default function CheckoutPage() {
               textTransform: 'uppercase',
               mb: 2
             }}>
-              Company
+              Công Ty
             </Typography>
             <Stack spacing={1}>
               <Typography sx={{ 
@@ -1157,7 +1189,7 @@ export default function CheckoutPage() {
                 textTransform: 'uppercase',
                 cursor: 'pointer'
               }}>
-                About Us
+                Về Chúng Tôi
               </Typography>
               <Typography sx={{ 
                 fontFamily: 'Inter',
@@ -1168,7 +1200,7 @@ export default function CheckoutPage() {
                 textTransform: 'uppercase',
                 cursor: 'pointer'
               }}>
-                Terms of Service
+                Điều Khoản Dịch Vụ
               </Typography>
             </Stack>
           </Box>
@@ -1184,7 +1216,7 @@ export default function CheckoutPage() {
               textTransform: 'uppercase',
               mb: 2
             }}>
-              Support
+              Hỗ Trợ
             </Typography>
             <Typography sx={{ 
               fontFamily: 'Inter',
@@ -1195,7 +1227,7 @@ export default function CheckoutPage() {
               textTransform: 'uppercase',
               cursor: 'pointer'
             }}>
-              Contact Us
+              Liên Hệ Chúng Tôi
             </Typography>
           </Box>
         </Box>

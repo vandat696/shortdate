@@ -1,4 +1,5 @@
 import { Box, Container, Grid, Stack, Typography } from '@mui/material';
+import logoImage from '../../assets/logo.png';
 
 export default function Footer() {
   const footerLinks = [
@@ -23,18 +24,28 @@ export default function Footer() {
         <Grid container spacing={6} sx={{ mb: 6 }}>
           {/* About Section */}
           <Grid item xs={12} md={3}>
-            <Typography
-              sx={{
-                fontFamily: '"Inter",system-ui,sans-serif',
-                fontWeight: 700,
-                fontSize: '18px',
-                lineHeight: '28px',
-                color: '#0D631B',
-                mb: 2,
-              }}
-            >
-              ShortDate
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+              <img 
+                src={logoImage} 
+                alt="ShortDate Logo"
+                style={{
+                  height: '32px',
+                  objectFit: 'contain',
+                }}
+              />
+              <Typography
+                sx={{
+                  fontFamily: '"Manrope","Inter",system-ui,sans-serif',
+                  fontWeight: 900,
+                  fontSize: '18px',
+                  lineHeight: '28px',
+                  color: '#0D631B',
+                  letterSpacing: '-0.45px',
+                }}
+              >
+                ShortDate
+              </Typography>
+            </Box>
             <Typography
               sx={{
                 fontFamily: '"Inter",system-ui,sans-serif',
