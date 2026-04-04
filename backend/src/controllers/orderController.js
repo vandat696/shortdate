@@ -220,8 +220,14 @@ class OrderController {
         message: 'Đơn hàng đã được tạo thành công'
       });
     } catch (error) {
-      console.error('Error creating order:', error);
-      res.status(500).json({ error: 'Lỗi khi tạo đơn hàng' });
+      console.error('❌ Error creating order:', error);
+      console.error('Error message:', error.message);
+      console.error('Error details:', error);
+      res.status(500).json({ 
+        error: 'Lỗi khi tạo đơn hàng',
+        message: error.message,
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
     }
   }
 
