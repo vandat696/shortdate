@@ -9,6 +9,7 @@ import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { getSupplierDistance } from '../../../utils/distanceUtils';
+import { getApiBaseUrl, getBackendBaseUrl } from '../../../utils/apiConfig';
 
 // Fix Leaflet marker icon
 delete L.Icon.Default.prototype._getIconUrl;
@@ -58,7 +59,7 @@ export default function NearYouMap() {
         // Nếu không, fetch từ API
         if (token) {
           const response = await axios.get(
-            'http://localhost:5000/api/auth/location',
+            `${getApiBaseUrl()}/auth/location`,
             { headers: { Authorization: `Bearer ${token}` } }
           );
 
@@ -90,7 +91,7 @@ export default function NearYouMap() {
     try {
       // Fetch tất cả suppliers/shops
       const response = await axios.get(
-        'http://localhost:5000/api/products/all?limit=1000',
+        `${getApiBaseUrl()}/products/all?limit=1000`,
         { headers: token ? { Authorization: `Bearer ${token}` } : {} }
       );
 
@@ -344,7 +345,7 @@ export default function NearYouMap() {
                   <CardMedia
                     component="img"
                     height="100"
-                    image={`http://localhost:5000${product.thumbnail_url || product.image_url}`}
+                    image={`${getBackendBaseUrl()}${product.thumbnail_url || product.image_url}`}
                     alt={product.name}
                     sx={{ objectFit: 'cover' }}
                   />

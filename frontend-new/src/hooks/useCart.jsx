@@ -1,8 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { getApiBaseUrl } from '../utils/apiConfig';
 
 const CartContext = createContext();
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 export function CartProvider({ children }) {
   const [cart, setCart] = useState([]);
@@ -15,6 +14,7 @@ export function CartProvider({ children }) {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
+      const API_BASE_URL = getApiBaseUrl();
       
       if (!token) {
         // Chưa đăng nhập, load from localStorage

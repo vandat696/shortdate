@@ -1,8 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { getApiBaseUrl } from '../utils/apiConfig';
 
 const WishlistContext = createContext();
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 export function WishlistProvider({ children }) {
   const [wishlist, setWishlist] = useState([]);
@@ -14,6 +13,7 @@ export function WishlistProvider({ children }) {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
+      const API_BASE_URL = getApiBaseUrl();
       
       if (!token) {
         setWishlist([]);
