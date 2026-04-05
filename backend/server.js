@@ -26,6 +26,7 @@ const allowedOrigins = [
   'http://localhost:5174',
   'https://shortdate.vercel.app',
   'https://shortdate-git-main-vandat696s-projects.vercel.app',
+  'https://shortdate.onrender.com',
   process.env.FRONTEND_URL
 ].filter(Boolean); // Remove undefined values
 
