@@ -41,3 +41,5 @@ router.get('/:productId', ImageUploadController.getProductImages);
  * Delete a specific image
  */
 router.delete('/:productId/:imageId', authenticate, ImageUploadController.deleteProductImage);
+
+export default router;
