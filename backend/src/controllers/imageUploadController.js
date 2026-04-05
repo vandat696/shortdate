@@ -1,16 +1,5 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { supabase } from '../config/supabase.js';
 import db from '../config/database.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Ensure upload directory exists
-const uploadDir = path.join(__dirname, '../../uploads/products');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
 
 class ImageUploadController {
   /**
@@ -72,23 +61,39 @@ class ImageUploadController {
       const uploadedImages = [];
       let nextPosition = existingCount + 1;
 
-      // Save each file
+      // Save each file to Supabase
       for (const file of req.files) {
         try {
           // Generate unique filename
-          const filename = `product-${productId}-${nextPosition}-${Date.now()}.jpg`;
-          const filepath = path.join(uploadDir, filename);
+          const fileExt = file.originalname.split('.').pop();
+          const fileName = `product-${productId}-${nextPosition}-${Date.now()}.${fileExt}`;
+          const filePath = `products/${fileName}`;
 
-          // Move file to upload directory
-          fs.copyFileSync(file.path, filepath);
-          fs.unlinkSync(file.path); // Delete temp file
+          // Upload to Supabase Storage
+          const { data, error } = await supabase.storage
+            .from('products')
+            .upload(filePath, file.buffer, {
+              cacheControl: '3600',
+              upsert: false,
+              contentType: file.mimetype
+            });
 
-          // Save to database
+          if (error) {
+            console.error('Supabase upload error:', error);
+            continue;
+          }
+
+          // Get public URL
+          const { data: { publicUrl } } = supabase.storage
+            .from('products')
+            .getPublicUrl(filePath);
+
+          // Save to database with Supabase URL
           const imageResult = await db.query(
             `INSERT INTO product_images (product_id, image_url, position)
              VALUES ($1, $2, $3)
              RETURNING id, image_url, position`,
-            [productId, `/uploads/products/${filename}`, nextPosition]
+            [productId, publicUrl, nextPosition]
           );
 
           uploadedImages.push(imageResult.rows[0]);
@@ -182,14 +187,17 @@ class ImageUploadController {
 
       const image = imageResult.rows[0];
 
-      // Delete file from filesystem
+      // Delete file from Supabase Storage
       try {
-        const filepath = path.join(__dirname, '../../public', image.image_url);
-        if (fs.existsSync(filepath)) {
-          fs.unlinkSync(filepath);
+        // Extract file path from URL
+        const filePath = image.image_url.split('/products/')[1];
+        if (filePath) {
+          await supabase.storage
+            .from('products')
+            .remove([`products/${filePath}`]);
         }
       } catch (error) {
-        console.error('Error deleting file:', error);
+        console.error('Error deleting file from Supabase:', error);
       }
 
       // Delete from database
