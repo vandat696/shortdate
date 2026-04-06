@@ -317,10 +317,10 @@ export default function DashboardOverview() {
                     <TableCell align="center">
                       <Box>
                         <Typography variant="caption" sx={{ color: '#78716C', textDecoration: 'line-through' }}>
-                          ${Number(product.original_price)?.toFixed(2) || 'N/A'}
+                          ${Math.round(Number(product.original_price)).toLocaleString('en-US') || 'N/A'}
                         </Typography>
                         <Typography variant="body2" sx={{ fontWeight: 700, color: '#181D17' }}>
-                          ${Number(product.current_price)?.toFixed(2) || 'N/A'}
+                          ${Math.round(Number(product.current_price)).toLocaleString('en-US') || 'N/A'}
                         </Typography>
                       </Box>
                     </TableCell>

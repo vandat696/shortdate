@@ -256,13 +256,13 @@ export default function OrderDetailPage() {
                   </Box>
                 </TableCell>
                 <TableCell align="right">
-                  {item.unitPrice.toLocaleString('vi-VN')} ₫
+                  {Math.round(item.unitPrice).toLocaleString('vi-VN')} ₫
                 </TableCell>
                 <TableCell align="center">
                   {item.quantity}
                 </TableCell>
                 <TableCell align="right">
-                  <strong>{item.totalPrice.toLocaleString('vi-VN')} ₫</strong>
+                  <strong>{Math.round(item.totalPrice).toLocaleString('vi-VN')} ₫</strong>
                 </TableCell>
               </TableRow>
             ))}
@@ -278,14 +278,14 @@ export default function OrderDetailPage() {
               <Typography>Tạm tính:</Typography>
             </Grid>
             <Grid item xs={4} sx={{ textAlign: 'right' }}>
-              <Typography>{order.subtotal?.toLocaleString('vi-VN') || '0'} ₫</Typography>
+              <Typography>{Math.round(order.subtotal || 0).toLocaleString('vi-VN') || '0'} ₫</Typography>
             </Grid>
 
             <Grid item xs={8}>
               <Typography>Phí vận chuyển:</Typography>
             </Grid>
             <Grid item xs={4} sx={{ textAlign: 'right' }}>
-              <Typography>{order.shippingFee?.toLocaleString('vi-VN') || '0'} ₫</Typography>
+              <Typography>{Math.round(order.shippingFee || 0).toLocaleString('vi-VN') || '0'} ₫</Typography>
             </Grid>
 
             <Grid item xs={12}>
@@ -299,7 +299,7 @@ export default function OrderDetailPage() {
             </Grid>
             <Grid item xs={4} sx={{ textAlign: 'right' }}>
               <Typography variant="h6" sx={{ fontWeight: 700, color: '#1976d2' }}>
-                {order.totalAmount?.toLocaleString('vi-VN') || '0'} ₫
+                {Math.round(order.totalAmount || 0).toLocaleString('vi-VN') || '0'} ₫
               </Typography>
             </Grid>
           </Grid>

@@ -511,7 +511,7 @@ export default function ProfilePage() {
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', mb: 1.5 }}>
                           <Box>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                              <Typography sx={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: 16, color: '#181D17' }}>
+                              <Typography sx={{ fontFamily: 'Myriad Condensed', fontWeight: 700, fontSize: 16, color: '#181D17' }}>
                                 {address.label}
                               </Typography>
                               {address.is_default && (
@@ -700,7 +700,7 @@ export default function ProfilePage() {
                   <CardContent>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                       <Box>
-                        <Typography sx={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: 16, color: '#181D17', mb: 1 }}>
+                        <Typography sx={{ fontFamily: 'Myriad Condensed', fontWeight: 700, fontSize: 16, color: '#181D17', mb: 1 }}>
                           📍 {supplierLocation.company_name ? supplierLocation.company_name : 'Vị trí cửa hàng'}
                         </Typography>
                         <Typography sx={{ fontFamily: 'Inter', fontSize: 14, color: '#40493D', mb: 0.5 }}>
@@ -731,7 +731,7 @@ export default function ProfilePage() {
                   <CardContent>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                       <Box>
-                        <Typography sx={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: 16, color: '#181D17', mb: 1 }}>
+                        <Typography sx={{ fontFamily: 'Myriad Condensed', fontWeight: 700, fontSize: 16, color: '#181D17', mb: 1 }}>
                           📍 Vị trí của bạn
                         </Typography>
                         <Typography sx={{ fontFamily: 'Inter', fontSize: 14, color: '#40493D', mb: 0.5 }}>
@@ -789,7 +789,7 @@ export default function ProfilePage() {
           sx: { borderRadius: '12px' }
         }}
       >
-        <DialogTitle sx={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: 18, color: '#181D17' }}>
+        <DialogTitle sx={{ fontFamily: 'Myriad Condensed', fontWeight: 700, fontSize: 18, color: '#181D17' }}>
           {editingAddress ? '✏️ Chỉnh Sửa Địa Chỉ' : '➕ Thêm Địa Chỉ Mới'}
         </DialogTitle>
         <DialogContent sx={{ py: 2 }}>
@@ -911,7 +911,7 @@ export default function ProfilePage() {
           sx: { borderRadius: '12px' }
         }}
       >
-        <DialogTitle sx={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: 18, color: '#181D17' }}>
+        <DialogTitle sx={{ fontFamily: 'Myriad Condensed', fontWeight: 700, fontSize: 18, color: '#181D17' }}>
           📍 Chọn vị trí trên bản đồ
         </DialogTitle>
         <DialogContent sx={{ py: 2 }}>

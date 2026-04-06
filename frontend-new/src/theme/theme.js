@@ -26,23 +26,27 @@ const theme = createTheme({
     },
   },
   typography: {
-    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+    fontFamily: '"Myriad Condensed", "Montserrat", "Inter", sans-serif',
     h1: {
       fontSize: '2.5rem',
       fontWeight: 700,
       letterSpacing: '-0.02em',
+      fontFamily: '"Myriad Condensed", sans-serif',
     },
     h2: {
       fontSize: '2rem',
       fontWeight: 700,
+      fontFamily: '"Myriad Condensed", sans-serif',
     },
     h3: {
       fontSize: '1.5rem',
       fontWeight: 600,
+      fontFamily: '"Montserrat", sans-serif',
     },
     body1: {
       fontSize: '1rem',
       lineHeight: 1.5,
+      fontFamily: '"Inter", sans-serif',
     },
   },
   shape: {

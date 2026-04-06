@@ -8,6 +8,7 @@ import CartDrawerShell from './components/common/CartDrawerShell';
 import ScrollToTop from './components/common/ScrollToTop';
 import HomePage from './features/products/pages/HomePage';
 import SearchPage from './features/products/pages/SearchPage';
+import AllProductsPage from './features/products/pages/AllProductsPage';
 import ProductDetailPage from './features/products/pages/ProductDetailPage';
 import LoginPage from './features/auth/pages/LoginPage';
 import RegisterPage from './features/auth/pages/RegisterPage';
@@ -63,6 +64,7 @@ export default function App() {
                       <Routes>
                         <Route path="/" element={<HomePage />} />
                         <Route path="/search" element={<SearchPage />} />
+                        <Route path="/products" element={<AllProductsPage />} />
                         <Route path="/products/:productId" element={<ProductDetailPage />} />
                         <Route path="/login" element={<LoginPage />} />
                         <Route path="/register" element={<RegisterPage />} />

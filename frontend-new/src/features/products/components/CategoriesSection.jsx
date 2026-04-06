@@ -19,7 +19,7 @@ export default function CategoriesSection() {
         {/* Heading */}
         <Typography
           sx={{
-            fontFamily: '"Manrope","Inter",system-ui,sans-serif',
+            fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif',
             fontWeight: 800,
             fontSize: 30,
             lineHeight: '36px',

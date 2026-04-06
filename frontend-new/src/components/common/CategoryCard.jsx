@@ -46,7 +46,7 @@ export default function CategoryCard({ icon, label, isFresh = true }) {
       {/* Label */}
       <Typography
         sx={{
-          fontFamily: '"Manrope","Inter",system-ui,sans-serif',
+          fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif',
           fontWeight: 700,
           fontSize: '16px',
           lineHeight: '24px',

@@ -244,7 +244,7 @@ export default function NearYouMap() {
       <Box sx={{ px: 2, pb: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
           <StoreIcon sx={{ fontSize: '18px', color: '#0D631B' }} />
-          <Typography sx={{ fontFamily: '"Manrope","Inter",system-ui,sans-serif', fontWeight: 700, fontSize: '14px', color: '#181D17', textTransform: 'uppercase' }}>
+          <Typography sx={{ fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif', fontWeight: 700, fontSize: '14px', color: '#181D17', textTransform: 'uppercase' }}>
             {suppliers.length} Shops gần bạn
           </Typography>
         </Box>
@@ -291,7 +291,7 @@ export default function NearYouMap() {
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <CardGiftcardIcon sx={{ fontSize: '18px', color: '#0D631B' }} />
-              <Typography sx={{ fontFamily: '"Manrope","Inter",system-ui,sans-serif', fontWeight: 700, fontSize: '14px', color: '#181D17', textTransform: 'uppercase' }}>
+              <Typography sx={{ fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif', fontWeight: 700, fontSize: '14px', color: '#181D17', textTransform: 'uppercase' }}>
                 Sản phẩm lân cận
               </Typography>
             </Box>

@@ -506,7 +506,7 @@ export default function SupplierInventory() {
                     <Box>
                       <Typography variant="caption" sx={{ color: '#999' }}>Giá</Typography>
                       <Typography sx={{ fontWeight: 700, color: '#2d5016' }}>
-                        ₫{Number(product.current_price).toLocaleString('vi-VN')}
+                        ₫{Math.round(Number(product.current_price)).toLocaleString('vi-VN')}
                       </Typography>
                     </Box>
                   </Box>
@@ -809,13 +809,13 @@ export default function SupplierInventory() {
                       <Box>
                         <Typography variant="caption" sx={{ color: '#78716C' }}>Giá gốc</Typography>
                         <Typography variant="h6" sx={{ fontWeight: 700, color: '#78716C', textDecoration: 'line-through' }}>
-                          ₫{Number(selectedProduct.original_price).toLocaleString('vi-VN')}
+                          ₫{Math.round(Number(selectedProduct.original_price)).toLocaleString('vi-VN')}
                         </Typography>
                       </Box>
                       <Box>
                         <Typography variant="caption" sx={{ color: '#2d5016' }}>Giá hiện tại</Typography>
                         <Typography variant="h5" sx={{ fontWeight: 800, color: '#2d5016' }}>
-                          ₫{Number(selectedProduct.current_price).toLocaleString('vi-VN')}
+                          ₫{Math.round(Number(selectedProduct.current_price)).toLocaleString('vi-VN')}
                         </Typography>
                       </Box>
                     </Box>
@@ -874,7 +874,7 @@ export default function SupplierInventory() {
                                 label={{ value: 'Giá (₫)', angle: -90, position: 'insideLeft' }}
                               />
                               <Tooltip 
-                                formatter={(value) => `₫${Number(value).toLocaleString('vi-VN')}`}
+                                formatter={(value) => `₫${Math.round(Number(value)).toLocaleString('vi-VN')}`}
                                 contentStyle={{ 
                                   backgroundColor: '#fff', 
                                   border: '1px solid #EBEFE5',

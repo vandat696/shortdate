@@ -269,7 +269,7 @@ export default function SupplierProfilePage() {
                   <CardContent>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                       <Box>
-                        <Typography sx={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: 16, color: '#181D17', mb: 1 }}>
+                        <Typography sx={{ fontFamily: 'Myriad Condensed', fontWeight: 700, fontSize: 16, color: '#181D17', mb: 1 }}>
                           📍 {supplierLocation.company_name ? supplierLocation.company_name : 'Vị trí cửa hàng'}
                         </Typography>
                         <Typography sx={{ fontFamily: 'Inter', fontSize: 14, color: '#40493D', mb: 0.5 }}>
@@ -320,7 +320,7 @@ export default function SupplierProfilePage() {
           sx: { borderRadius: '12px' }
         }}
       >
-        <DialogTitle sx={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: 18, color: '#181D17' }}>
+        <DialogTitle sx={{ fontFamily: 'Myriad Condensed', fontWeight: 700, fontSize: 18, color: '#181D17' }}>
           📍 Chọn vị trí cửa hàng trên bản đồ
         </DialogTitle>
         <DialogContent sx={{ py: 2 }}>

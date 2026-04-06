@@ -1,6 +1,7 @@
 import { Box, Typography } from '@mui/material';
 import StoreIcon from '@mui/icons-material/Store';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import { getImageUrl } from '../../../services/api';
@@ -29,6 +30,19 @@ export default function ProductCard({ product }) {
     product.supplier_longitude
   );
 
+  // Format hạn sử dụng
+  const formatExpiryDate = (dateString) => {
+    if (!dateString) return null;
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: '2-digit' });
+    } catch {
+      return null;
+    }
+  };
+
+  const expiryDate = formatExpiryDate(product.expiry_date);
+
   const handleClick = () => {
     navigate(`/products/${product.id}`);
   };
@@ -45,7 +59,8 @@ export default function ProductCard({ product }) {
         cursor: 'pointer',
         display: 'flex',
         flexDirection: 'column',
-        height: '100%',
+        height: '300px',
+        minWidth: '160px',
         '&:hover': {
           boxShadow: '0px 10px 25px rgba(0, 0, 0, 0.1)',
           transform: 'translateY(-4px)',
@@ -56,27 +71,16 @@ export default function ProductCard({ product }) {
       <Box
         sx={{
           width: '100%',
-          paddingBottom: '100%',
+          height: '140px',
           position: 'relative',
           backgroundColor: '#E0E4DA',
           overflow: 'hidden',
           backgroundImage: imageUrl ? `url(${imageUrl})` : 'linear-gradient(135deg, #EBEFE5 0%, #D9E0D5 100%)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
+          flexShrink: 0,
         }}
       >
-        <Box
-          sx={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            backgroundColor: (product.thumbnail_url || product.image_url) ? 'transparent' : '#E0E4DA',
-            backgroundImage: (product.thumbnail_url || product.image_url) ? 'none' : 'linear-gradient(135deg, #EBEFE5 0%, #D9E0D5 100%)',
-          }}
-        />
-
         {/* Discount Badge */}
         {discount > 0 && (
           <Box
@@ -92,7 +96,7 @@ export default function ProductCard({ product }) {
           >
             <Typography
               sx={{
-                fontFamily: '"Manrope","Inter",system-ui,sans-serif',
+                fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif',
                 fontWeight: 700,
                 fontSize: '12px',
                 lineHeight: '16px',
@@ -108,11 +112,12 @@ export default function ProductCard({ product }) {
       {/* Content */}
       <Box
         sx={{
-          padding: '16px',
+          padding: '12px 14px',
           display: 'flex',
           flexDirection: 'column',
-          gap: 1,
+          gap: '4px',
           flex: 1,
+          minHeight: 0,
         }}
       >
         {/* Category */}
@@ -120,11 +125,14 @@ export default function ProductCard({ product }) {
           sx={{
             fontFamily: '"Inter",system-ui,sans-serif',
             fontWeight: 600,
-            fontSize: '10px',
-            lineHeight: '14px',
+            fontSize: '9px',
+            lineHeight: '12px',
             letterSpacing: '0.5px',
             textTransform: 'uppercase',
             color: '#964900',
+            textOverflow: 'ellipsis',
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
           }}
         >
           {product.category}
@@ -133,80 +141,120 @@ export default function ProductCard({ product }) {
         {/* Product Name */}
         <Typography
           sx={{
-            fontFamily: '"Manrope","Inter",system-ui,sans-serif',
+            fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif',
             fontWeight: 700,
-            fontSize: '14px',
-            lineHeight: '20px',
+            fontSize: '13px',
+            lineHeight: '16px',
             color: '#181D17',
             display: '-webkit-box',
             WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical',
             overflow: 'hidden',
+            minHeight: '32px',
+            maxHeight: '32px',
           }}
         >
           {product.name}
         </Typography>
 
-        {/* Supplier Name */}
-        {product.supplier_name && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <StoreIcon sx={{ fontSize: '14px', color: '#666666' }} />
+        {/* Supplier & Distance */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', minHeight: '16px', overflow: 'hidden' }}>
+          {product.supplier_name && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '3px', minWidth: 0, flex: 1 }}>
+              <StoreIcon sx={{ fontSize: '11px', color: '#666666', flexShrink: 0 }} />
+              <Typography
+                sx={{
+                  fontFamily: '"Inter",system-ui,sans-serif',
+                  fontWeight: 500,
+                  fontSize: '9px',
+                  lineHeight: '12px',
+                  color: '#666666',
+                  textOverflow: 'ellipsis',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {product.supplier_name}
+              </Typography>
+            </Box>
+          )}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '3px', flexShrink: 0 }}>
+            <LocationOnIcon sx={{ fontSize: '11px', color: '#0D631B', flexShrink: 0 }} />
             <Typography
               sx={{
                 fontFamily: '"Inter",system-ui,sans-serif',
                 fontWeight: 500,
-                fontSize: '11px',
-                lineHeight: '14px',
-                color: '#666666',
-                marginTop: '4px',
+                fontSize: '9px',
+                lineHeight: '12px',
+                color: '#0D631B',
               }}
             >
-              {product.supplier_name}
+              {supplierDistance}
+            </Typography>
+          </Box>
+        </Box>
+
+        {/* Expiry Date */}
+        {expiryDate && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', minHeight: '14px' }}>
+            <CalendarTodayIcon sx={{ fontSize: '11px', color: '#D68800', flexShrink: 0 }} />
+            <Typography
+              sx={{
+                fontFamily: '"Inter",system-ui,sans-serif',
+                fontWeight: 500,
+                fontSize: '9px',
+                lineHeight: '12px',
+                color: '#D68800',
+              }}
+            >
+              HSD: {expiryDate}
             </Typography>
           </Box>
         )}
 
-        {/* Distance */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <LocationOnIcon sx={{ fontSize: '14px', color: '#0D631B' }} />
+        {/* Description */}
+        {product.description && (
           <Typography
             sx={{
               fontFamily: '"Inter",system-ui,sans-serif',
-              fontWeight: 500,
-              fontSize: '11px',
-              lineHeight: '14px',
-              color: '#0D631B',
-              marginBottom: '4px',
+              fontWeight: 400,
+              fontSize: '9px',
+              lineHeight: '12px',
+              color: '#666666',
+              textOverflow: 'ellipsis',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              minHeight: '12px',
             }}
           >
-            {supplierDistance}
+            {product.description}
           </Typography>
-        </Box>
+        )}
 
         {/* Pricing */}
-        <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, mt: 'auto' }}>
+        <Box sx={{ display: 'flex', alignItems: 'baseline', gap: '8px', mt: 'auto', pt: '2px' }}>
           <Typography
             sx={{
-              fontFamily: '"Manrope","Inter",system-ui,sans-serif',
+              fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif',
               fontWeight: 800,
-              fontSize: '16px',
-              lineHeight: '24px',
+              fontSize: '14px',
+              lineHeight: '20px',
               color: '#181D17',
             }}
           >
-            {product.current_price.toLocaleString('vi-VN')}₫
+            {Math.round(product.current_price).toLocaleString('vi-VN')}₫
           </Typography>
           <Typography
             sx={{
               fontFamily: '"Inter",system-ui,sans-serif',
               fontWeight: 400,
-              fontSize: '12px',
-              lineHeight: '16px',
+              fontSize: '11px',
+              lineHeight: '14px',
               textDecoration: 'line-through',
               color: '#BFCCBA',
             }}
           >
-            {product.original_price.toLocaleString('vi-VN')}₫
+            {Math.round(product.original_price).toLocaleString('vi-VN')}₫
           </Typography>
         </Box>
       </Box>
@@ -219,7 +267,12 @@ ProductCard.propTypes = {
     id: PropTypes.number.isRequired,
     name: PropTypes.string.isRequired,
     category: PropTypes.string.isRequired,
+    description: PropTypes.string,
     current_price: PropTypes.number.isRequired,
     original_price: PropTypes.number.isRequired,
+    expiry_date: PropTypes.string,
+    supplier_name: PropTypes.string,
+    supplier_latitude: PropTypes.number,
+    supplier_longitude: PropTypes.number,
   }).isRequired,
 };

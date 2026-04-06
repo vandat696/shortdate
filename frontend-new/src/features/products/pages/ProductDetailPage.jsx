@@ -276,7 +276,7 @@ export default function ProductDetailPage() {
                   {/* Product Name */}
                   <Typography
                     sx={{
-                      fontFamily: '"Manrope",system-ui,sans-serif',
+                      fontFamily: '"Myriad Condensed",system-ui,sans-serif',
                       fontWeight: 800,
                       fontSize: '36px',
                       lineHeight: '36px',
@@ -318,12 +318,12 @@ export default function ProductDetailPage() {
                           mb: 1,
                         }}
                       >
-                        CURRENT SMART-PRICE
+                        Giá hiện tại
                       </Typography>
                       <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 2 }}>
                         <Typography
                           sx={{
-                            fontFamily: '"Manrope",system-ui,sans-serif',
+                            fontFamily: '"Myriad Condensed",system-ui,sans-serif',
                             fontWeight: 800,
                             fontSize: '48px',
                             lineHeight: '48px',
@@ -331,7 +331,7 @@ export default function ProductDetailPage() {
                             color: '#181D17',
                           }}
                         >
-                          {product.current_price.toLocaleString('vi-VN')}₫
+                          {Math.round(product.current_price).toLocaleString('vi-VN')}₫
                         </Typography>
                         <Typography
                           sx={{
@@ -343,7 +343,7 @@ export default function ProductDetailPage() {
                             color: '#707A6C',
                           }}
                         >
-                          {product.original_price.toLocaleString('vi-VN')}₫
+                          {Math.round(product.original_price).toLocaleString('vi-VN')}₫
                         </Typography>
                       </Box>
                     </Box>
@@ -361,7 +361,7 @@ export default function ProductDetailPage() {
                     >
                       <Typography
                         sx={{
-                          fontFamily: '"Manrope",system-ui,sans-serif',
+                          fontFamily: '"Myriad Condensed",system-ui,sans-serif',
                           fontWeight: 700,
                           fontSize: '18px',
                           lineHeight: '28px',
@@ -387,7 +387,7 @@ export default function ProductDetailPage() {
                       <Box>
                         <Typography
                           sx={{
-                            fontFamily: '"Manrope",system-ui,sans-serif',
+                            fontFamily: '"Myriad Condensed",system-ui,sans-serif',
                             fontWeight: 700,
                             fontSize: '12px',
                             lineHeight: '16px',
@@ -419,7 +419,7 @@ export default function ProductDetailPage() {
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography
                       sx={{
-                        fontFamily: '"Manrope",system-ui,sans-serif',
+                        fontFamily: '"Myriad Condensed",system-ui,sans-serif',
                         fontWeight: 700,
                         fontSize: '14px',
                         lineHeight: '20px',
@@ -428,45 +428,8 @@ export default function ProductDetailPage() {
                         letterSpacing: '-0.35px',
                       }}
                     >
-                      FRESHNESS INTEGRITY
+                      
                     </Typography>
-                    <Typography
-                      sx={{
-                        fontFamily: '"Inter",system-ui,sans-serif',
-                        fontWeight: 700,
-                        fontSize: '12px',
-                        lineHeight: '16px',
-                        textTransform: 'uppercase',
-                        color: '#0D631B',
-                      }}
-                    >
-                      HIGH CONFIDENCE
-                    </Typography>
-                  </Box>
-
-                  {/* Progress Bar */}
-                  <Box
-                    sx={{
-                      height: '12px',
-                      backgroundColor: '#E0E4DA',
-                      borderRadius: '9999px',
-                      overflow: 'hidden',
-                      position: 'relative',
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        left: 0,
-                        top: 0,
-                        height: '100%',
-                        width: `${product.freshnessPercentage}%`,
-                        backgroundColor: '#0D631B',
-                        boxShadow: '0px 0px 12px rgba(13, 99, 27, 0.3)',
-                        borderRadius: '9999px',
-                        transition: 'width 0.3s ease',
-                      }}
-                    />
                   </Box>
 
                   {/* Date Boxes */}
@@ -493,11 +456,11 @@ export default function ProductDetailPage() {
                             mb: 1,
                           }}
                         >
-                          USE BY DATE
+                          HSD
                         </Typography>
                         <Typography
                           sx={{
-                            fontFamily: '"Manrope",system-ui,sans-serif',
+                            fontFamily: '"Myriad Condensed",system-ui,sans-serif',
                             fontWeight: 700,
                             fontSize: '18px',
                             lineHeight: '28px',
@@ -538,69 +501,18 @@ export default function ProductDetailPage() {
                         </Box>
                         <Typography
                           sx={{
-                            fontFamily: '"Manrope",system-ui,sans-serif',
+                            fontFamily: '"Myriad Condensed",system-ui,sans-serif',
                             fontWeight: 700,
                             fontSize: '18px',
                             lineHeight: '22px',
                             color: '#181D17',
                           }}
                         >
-                          {daysLeft(product.expiry_date) || 0} Days
+                          {daysLeft(product.expiry_date) || 0} ngày
                         </Typography>
                       </Box>
                     </Grid>
                   </Grid>
-                </Box>
-
-                {/* Delivery Info */}
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 2,
-                    p: 2,
-                    backgroundColor: '#F1F5EB',
-                    borderRadius: '16px',
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: '48px',
-                      height: '48px',
-                      backgroundColor: '#FFFFFF',
-                      borderRadius: '12px',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <Box sx={{ width: '22px', height: '16px', backgroundColor: '#0D631B' }} />
-                  </Box>
-                  <Box>
-                    <Typography
-                      sx={{
-                        fontFamily: '"Manrope",system-ui,sans-serif',
-                        fontWeight: 700,
-                        fontSize: '14px',
-                        lineHeight: '20px',
-                        color: '#181D17',
-                      }}
-                    >
-                      🚚 Hyper-Local Delivery
-                    </Typography>
-                    <Typography
-                      sx={{
-                        fontFamily: '"Inter",system-ui,sans-serif',
-                        fontWeight: 400,
-                        fontSize: '12px',
-                        lineHeight: '16px',
-                        color: '#707A6C',
-                      }}
-                    >
-                      Available for your current zip code: {userZip || 'N/A'}
-                    </Typography>
-                  </Box>
                 </Box>
 
                 {/* Purchase Controls */}
@@ -618,10 +530,10 @@ export default function ProductDetailPage() {
 
           {/* Price History Chart Section */}
           {priceHistory.length > 0 && (
-            <Box sx={{ mb: 8 }}>
+            <Box sx={{ mb: 8, display: 'block', width: '100%' }}>
               <Typography
                 sx={{
-                  fontFamily: '"Manrope",system-ui,sans-serif',
+                  fontFamily: '"Myriad Condensed",system-ui,sans-serif',
                   fontWeight: 900,
                   fontSize: '24px',
                   lineHeight: '32px',
@@ -660,7 +572,7 @@ export default function ProductDetailPage() {
                           label={{ value: 'Giá (₫)', angle: -90, position: 'insideLeft', fill: '#707A6C' }}
                         />
                         <Tooltip 
-                          formatter={(value) => `₫${Number(value).toLocaleString('vi-VN')}`}
+                          formatter={(value) => `₫${Math.round(Number(value)).toLocaleString('vi-VN')}`}
                           contentStyle={{ 
                             backgroundColor: '#fff', 
                             border: '1px solid #EBEFE5',
@@ -707,7 +619,7 @@ export default function ProductDetailPage() {
           <Box sx={{ mb: 8 }}>
             <Typography
               sx={{
-                fontFamily: '"Manrope",system-ui,sans-serif',
+                fontFamily: '"Myriad Condensed",system-ui,sans-serif',
                 fontWeight: 900,
                 fontSize: '24px',
                 lineHeight: '32px',
@@ -716,7 +628,7 @@ export default function ProductDetailPage() {
                 mb: 4,
               }}
             >
-              Near-expiry deals you might like
+              Các sản phẩm xung quanh bạn có thể thích
             </Typography>
             <Grid container spacing={3}>
               {relatedProducts.length > 0 ? (
@@ -772,7 +684,7 @@ export default function ProductDetailPage() {
                       <Box sx={{ p: 2, flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
                         <Typography
                           sx={{
-                            fontFamily: '"Manrope",system-ui,sans-serif',
+                            fontFamily: '"Myriad Condensed",system-ui,sans-serif',
                             fontWeight: 700,
                             fontSize: '14px',
                             color: '#181D17',
@@ -788,13 +700,13 @@ export default function ProductDetailPage() {
                         <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
                           <Typography
                             sx={{
-                              fontFamily: '"Manrope",system-ui,sans-serif',
+                              fontFamily: '"Myriad Condensed",system-ui,sans-serif',
                               fontWeight: 800,
                               fontSize: '18px',
                               color: '#181D17',
                             }}
                           >
-                            {relatedProduct.current_price.toLocaleString('vi-VN')}₫
+                            {Math.round(relatedProduct.current_price).toLocaleString('vi-VN')}₫
                           </Typography>
                           <Typography
                             sx={{
@@ -805,7 +717,7 @@ export default function ProductDetailPage() {
                               color: '#707A6C',
                             }}
                           >
-                            {relatedProduct.original_price.toLocaleString('vi-VN')}₫
+                            {Math.round(relatedProduct.original_price).toLocaleString('vi-VN')}₫
                           </Typography>
                         </Box>
                       </Box>

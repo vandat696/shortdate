@@ -99,7 +99,7 @@ export default function ProductImageGallery({ mainImage, thumbnails, allImages =
           <Box sx={{ width: '10px', height: '12px', backgroundColor: '#5E2C00' }} />
           <Box
             sx={{
-              fontFamily: '"Manrope","Inter",system-ui,sans-serif',
+              fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif',
               fontWeight: 700,
               fontSize: '14px',
               lineHeight: '20px',

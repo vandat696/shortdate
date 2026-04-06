@@ -294,7 +294,7 @@ export default function WishlistPage() {
                             mb: 0.5,
                           }}
                         >
-                          ₫{item.product.original_price.toLocaleString('vi-VN')}
+                          ₫{Math.round(item.product.original_price).toLocaleString('vi-VN')}
                         </Typography>
                       )}
                       <Typography
@@ -304,7 +304,7 @@ export default function WishlistPage() {
                           fontWeight: 700,
                         }}
                       >
-                        ₫{item.product.current_price.toLocaleString('vi-VN')}
+                        ₫{Math.round(item.product.current_price).toLocaleString('vi-VN')}
                       </Typography>
                     </Box>
 

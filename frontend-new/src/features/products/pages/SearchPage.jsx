@@ -191,7 +191,7 @@ export default function SearchPage() {
                   step={1000}
                 />
                 <Typography variant="body2" color="text.secondary">
-                  {priceRange[0].toLocaleString('vi-VN')}đ — {priceRange[1].toLocaleString('vi-VN')}đ
+                  {Math.round(priceRange[0]).toLocaleString('vi-VN')}đ — {Math.round(priceRange[1]).toLocaleString('vi-VN')}đ
                 </Typography>
               </Box>
 

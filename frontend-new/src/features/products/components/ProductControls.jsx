@@ -125,7 +125,7 @@ export default function ProductControls({ productId, stock_quantity, onAddToCart
           sx={{
             backgroundColor: isSaved ? '#EBEFE5' : '#0D631B',
             color: isSaved ? '#40493D' : '#FFFFFF',
-            fontFamily: '"Manrope","Inter",system-ui,sans-serif',
+            fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif',
             fontWeight: 800,
             fontSize: '16px',
             padding: '16px 0',
@@ -147,7 +147,7 @@ export default function ProductControls({ productId, stock_quantity, onAddToCart
           sx={{
             backgroundColor: '#0D631B',
             color: '#FFFFFF',
-            fontFamily: '"Manrope","Inter",system-ui,sans-serif',
+            fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif',
             fontWeight: 800,
             fontSize: '16px',
             padding: '16px 0',

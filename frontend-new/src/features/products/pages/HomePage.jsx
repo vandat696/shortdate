@@ -6,6 +6,7 @@ import HeroSalesCarousel from '../components/HeroSalesCarousel';
 import CategoriesSection from '../components/CategoriesSection';
 import BundlesSection from '../components/BundlesSection';
 import NearYouMap from '../components/NearYouMap';
+import FilterSidebar from '../../../components/common/FilterSidebar';
 import { productService } from '../../../services/api';
 
 const FALLBACK_PRODUCTS = [
@@ -37,10 +38,27 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [secondsLeft, setSecondsLeft] = useState(23 * 3600 + 44 * 60 + 12);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [filters, setFilters] = useState({
+    categories: [],
+    distances: [],
+    priceRange: [0, 1000000],
+    expiry: [],
+  });
 
   useEffect(() => {
     const t = setInterval(() => setSecondsLeft((s) => Math.max(0, s - 1)), 1000);
     return () => clearInterval(t);
+  }, []);
+
+  // Listen for filter menu toggle event from Header
+  useEffect(() => {
+    const handleFilterMenuToggle = () => {
+      setFilterOpen(prev => !prev);
+    };
+
+    window.addEventListener('filterMenuToggle', handleFilterMenuToggle);
+    return () => window.removeEventListener('filterMenuToggle', handleFilterMenuToggle);
   }, []);
 
   useEffect(() => {
@@ -71,19 +89,70 @@ export default function HomePage() {
   const flashSaleProducts = products.slice(0, 4);
   const nearYouProducts = products.slice(0, 8);
 
+  // Filter products based on selected filters
+  const getFilteredProducts = () => {
+    return products.filter(product => {
+      // Filter by category
+      if (filters.categories.length > 0) {
+        if (!filters.categories.includes(product.category)) return false;
+      }
+
+      // Filter by price range
+      if (product.current_price < filters.priceRange[0] || product.current_price > filters.priceRange[1]) {
+        return false;
+      }
+
+      // Filter by expiry date
+      if (filters.expiry.length > 0) {
+        const expiryDate = new Date(product.expiry_date);
+        const today = new Date();
+        const daysUntilExpiry = Math.floor((expiryDate - today) / (1000 * 60 * 60 * 24));
+
+        const isMatch = filters.expiry.some(type => {
+          switch (type) {
+            case 'today':
+              return daysUntilExpiry === 0;
+            case '3days':
+              return daysUntilExpiry <= 3 && daysUntilExpiry > 0;
+            case '7days':
+              return daysUntilExpiry <= 7 && daysUntilExpiry > 0;
+            case '14days':
+              return daysUntilExpiry <= 14 && daysUntilExpiry > 0;
+            default:
+              return true;
+          }
+        });
+
+        if (!isMatch) return false;
+      }
+
+      return true;
+    });
+  };
+
+  const filteredProducts = getFilteredProducts();
+
   const hh = String(Math.floor(secondsLeft / 3600)).padStart(2, '0');
   const mm = String(Math.floor((secondsLeft % 3600) / 60)).padStart(2, '0');
   const ss = String(secondsLeft % 60).padStart(2, '0');
 
   return (
     <Box sx={{ width: '100%', background: '#F7FBF0', overflowX: 'hidden' }}>
+      {/* Filter Sidebar */}
+      <FilterSidebar 
+        open={filterOpen} 
+        onClose={() => setFilterOpen(false)}
+        onFilterChange={setFilters}
+        filters={filters}
+      />
+
       <Container
         maxWidth={false}
         sx={{
           width: '100%',
           maxWidth: 1280,
           px: 3,
-          pb: '9px',
+          pb: '48px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'flex-start',
@@ -93,14 +162,12 @@ export default function HomePage() {
         }}
       >
         <Box sx={{ width: '100%', pt: '96px', display: 'flex', flexDirection: 'column', gap: '64px' }}>
-          {/* Hero Section: Editorial Layering */}
+          {/* Hero Section */}
           <Box sx={{ width: '100%', position: 'relative' }}>
-            {/* Carousel - Positioned absolutely on top */}
             <Box sx={{ position: 'absolute', top: 0, right: 0, width: { xs: '100%', md: '50%' }, height: 450, zIndex: 100 }}>
               <HeroSalesCarousel products={products} />
             </Box>
 
-            {/* Text Content - Behind carousel */}
             <Box sx={{ width: '100%', height: 450, position: 'relative', zIndex: 1 }}>
               <Grid container spacing={4} sx={{ height: '100%' }}>
                 <Grid item xs={12} md={5} sx={{ display: 'flex', alignItems: 'center' }}>
@@ -111,7 +178,7 @@ export default function HomePage() {
                       </Typography>
                     </Box>
 
-                    <Typography sx={{ mt: 2, fontFamily: '"Manrope","Inter",system-ui,sans-serif', fontWeight: 700, fontSize: { xs: 44, md: 72 }, lineHeight: { xs: '48px', md: '72px' }, letterSpacing: { xs: '-2px', md: '-3.6px' }, color: '#181D17' }}>
+                    <Typography sx={{ mt: 2, fontFamily: '"Myriad Condensed","Inter",system-ui,sans-serif', fontWeight: 700, fontSize: { xs: 44, md: 72 }, lineHeight: { xs: '48px', md: '72px' }, letterSpacing: { xs: '-2px', md: '-3.6px' }, color: '#181D17' }}>
                       SALE HÀNG NGÀY
                       <br />
                       SIÊU ƯU ĐÃI
@@ -151,7 +218,7 @@ export default function HomePage() {
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                     <Box sx={{ width: 16, height: 20, bgcolor: '#964900', borderRadius: 1 }} />
-                    <Typography sx={{ fontFamily: '"Manrope","Inter",system-ui,sans-serif', fontWeight: 800, fontSize: 30, lineHeight: '36px', letterSpacing: '-0.75px', textTransform: 'uppercase', color: '#181D17' }}>                      
+                    <Typography sx={{ fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif', fontWeight: 800, fontSize: 30, lineHeight: '36px', letterSpacing: '-0.75px', textTransform: 'uppercase', color: '#181D17' }}>                      
                       FLASH SALE                  
                     </Typography>
                   </Box>
@@ -230,12 +297,47 @@ export default function HomePage() {
                 >
                   <Typography sx={{ fontSize: '24px' }}>🚀</Typography>
                 </Box>
-                <Typography sx={{ fontFamily: '"Manrope","Inter",system-ui,sans-serif', fontWeight: 800, fontSize: 30, lineHeight: '36px', letterSpacing: '-0.75px', color: '#181D17' }}>
+                <Typography sx={{ fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif', fontWeight: 800, fontSize: 30, lineHeight: '36px', letterSpacing: '-0.75px', color: '#181D17' }}>
                   Sản phẩm quanh bạn
                 </Typography>
               </Box>
               <NearYouMap />
             </Container>
+          </Box>
+
+          {/* All Products Section with Filter */}
+          <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '32px' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Box sx={{ width: 16, height: 20, bgcolor: '#964900', borderRadius: 1 }} />
+              <Typography sx={{ fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif', fontWeight: 800, fontSize: 30, lineHeight: '36px', letterSpacing: '-0.75px', textTransform: 'uppercase', color: '#181D17' }}>
+                TẤT CẢ SẢN PHẨM
+              </Typography>
+              <Typography sx={{ fontFamily: '"Inter",system-ui,sans-serif', fontWeight: 500, fontSize: 16, color: '#40493D', ml: 2 }}>
+                {filteredProducts.length > 0 ? `${filteredProducts.length} sản phẩm` : 'Không có sản phẩm'}
+              </Typography>
+            </Box>
+
+            {loading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 12 }}>
+                <CircularProgress />
+              </Box>
+            ) : error ? (
+              <Typography color="error" sx={{ textAlign: 'center', py: 4 }}>
+                {error}
+              </Typography>
+            ) : filteredProducts.length === 0 ? (
+              <Typography sx={{ textAlign: 'center', py: 8, color: '#666', fontSize: 16 }}>
+                Không tìm thấy sản phẩm phù hợp với bộ lọc của bạn
+              </Typography>
+            ) : (
+              <Grid container spacing={3}>
+                {filteredProducts.map((product) => (
+                  <Grid item xs={12} sm={6} md={3} key={product.id}>
+                    <ProductCard product={product} />
+                  </Grid>
+                ))}
+              </Grid>
+            )}
           </Box>
         </Box>
       </Container>

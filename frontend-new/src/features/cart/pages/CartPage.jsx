@@ -253,7 +253,7 @@ export default function CartPage() {
     return (
       <Box sx={{ bgcolor: '#F7FBF0', display: 'flex', alignItems: 'center', justifyContent: 'center', py: 3 }}>
         <Paper sx={{ p: 4, maxWidth: 400, textAlign: 'center' }}>
-          <Typography sx={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: 18, mb: 2 }}>
+          <Typography sx={{ fontFamily: 'Myriad Condensed', fontWeight: 700, fontSize: 18, mb: 2 }}>
             Bạn cần đăng nhập
           </Typography>
           <Typography sx={{ fontFamily: 'Inter', fontSize: 14, color: '#707A6C', mb: 3 }}>
@@ -270,7 +270,7 @@ export default function CartPage() {
   if (cartLoading) {
     return (
       <Box sx={{ bgcolor: '#F7FBF0', display: 'flex', alignItems: 'center', justifyContent: 'center', py: 3 }}>
-        <Typography sx={{ fontFamily: 'Manrope', fontWeight: 600, fontSize: 16 }}>
+        <Typography sx={{ fontFamily: 'Myriad Condensed', fontWeight: 600, fontSize: 16 }}>
           Đang tải giỏ hàng...
         </Typography>
       </Box>
@@ -281,7 +281,7 @@ export default function CartPage() {
     return (
       <Box sx={{ bgcolor: '#F7FBF0', display: 'flex', alignItems: 'center', justifyContent: 'center', py: 3 }}>
         <Paper sx={{ p: 4, maxWidth: 400, textAlign: 'center' }}>
-          <Typography sx={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: 20, mb: 2 }}>
+          <Typography sx={{ fontFamily: 'Myriad Condensed', fontWeight: 700, fontSize: 20, mb: 2 }}>
             Giỏ hàng trống
           </Typography>
           <Typography sx={{ fontFamily: 'Inter', fontSize: 14, color: '#707A6C', mb: 3 }}>
@@ -313,7 +313,7 @@ export default function CartPage() {
       }}>
         <Box sx={{ maxWidth: 1280, mx: 'auto', px: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box>
-            <Typography sx={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: 16, color: '#964900' }}>
+            <Typography sx={{ fontFamily: 'Myriad Condensed', fontWeight: 700, fontSize: 16, color: '#964900' }}>
               Hãy hoàn tất đơn hàng ngay!
             </Typography>
             <Typography sx={{ fontFamily: 'Inter', fontSize: 13, color: '#964900', opacity: 0.8 }}>
@@ -327,7 +327,7 @@ export default function CartPage() {
       <Box sx={{ maxWidth: 1280, mx: 'auto', px: 3 }}>
         {/* Header */}
         <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e0e0e0' }}>
-          <Typography sx={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: 28, color: '#181D17' }}>
+          <Typography sx={{ fontFamily: 'Myriad Condensed', fontWeight: 700, fontSize: 28, color: '#181D17' }}>
             Giỏ hàng
           </Typography>
         </Box>
@@ -432,8 +432,8 @@ export default function CartPage() {
                             : 'N/A'}
                         </Typography>
                       </Box>
-                      <Typography sx={{ fontFamily: 'Manrope', fontSize: 16, fontWeight: 700, color: '#964900' }}>
-                        {(item.subtotal || 0).toLocaleString('vi-VN')} ₫
+                      <Typography sx={{ fontFamily: 'Myriad Condensed', fontSize: 16, fontWeight: 700, color: '#964900' }}>
+                        {Math.round(item.subtotal || 0).toLocaleString('vi-VN')} ₫
                       </Typography>
                     </Box>
 
@@ -487,7 +487,7 @@ export default function CartPage() {
 
             {/* Inline Checkout Form - Address & Delivery Selection */}
             <Paper sx={{ p: 3, mb: 3, backgroundColor: '#FFF5F0', border: '2px solid #FFDCC6' }}>
-              <Typography sx={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: 18, color: '#181D17', mb: 2 }}>
+              <Typography sx={{ fontFamily: 'Myriad Condensed', fontWeight: 700, fontSize: 18, color: '#181D17', mb: 2 }}>
                 Địa chỉ giao hàng
               </Typography>
 
@@ -509,7 +509,7 @@ export default function CartPage() {
                   alignItems: 'start'
                 }}>
                   <Box>
-                    <Typography sx={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: 14, color: '#181D17', mb: 0.5 }}>
+                    <Typography sx={{ fontFamily: 'Myriad Condensed', fontWeight: 700, fontSize: 14, color: '#181D17', mb: 0.5 }}>
                       {selectedAddress.label}
                     </Typography>
                     <Typography sx={{ fontFamily: 'Inter', fontSize: 12, color: '#40493D' }}>
@@ -544,7 +544,7 @@ export default function CartPage() {
               )}
 
               {/* Delivery Method Selection */}
-              <Typography sx={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: 16, color: '#181D17', mb: 2, mt: 3 }}>
+              <Typography sx={{ fontFamily: 'Myriad Condensed', fontWeight: 700, fontSize: 16, color: '#181D17', mb: 2, mt: 3 }}>
                 Phương thức giao hàng
               </Typography>
 
@@ -579,8 +579,8 @@ export default function CartPage() {
                           {method.description}
                         </Typography>
                       </Box>
-                      <Typography sx={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: 14, color: '#0D631B' }}>
-                        {method.base_price.toLocaleString('vi-VN')} ₫
+                      <Typography sx={{ fontFamily: 'Myriad Condensed', fontWeight: 700, fontSize: 14, color: '#0D631B' }}>
+                        {Math.round(method.base_price).toLocaleString('vi-VN')} ₫
                       </Typography>
                     </Box>
                   ))}
@@ -597,7 +597,7 @@ export default function CartPage() {
             height: 'fit-content'
           }}>
             <Paper sx={{ p: 3, backgroundColor: 'white', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
-              <Typography sx={{ fontFamily: 'Manrope', fontSize: 18, fontWeight: 700, color: '#181D17', mb: 2 }}>
+              <Typography sx={{ fontFamily: 'Myriad Condensed', fontSize: 18, fontWeight: 700, color: '#181D17', mb: 2 }}>
                 Tóm tắt đơn hàng
               </Typography>
 
@@ -608,7 +608,7 @@ export default function CartPage() {
                     Tạm tính:
                   </Typography>
                   <Typography sx={{ fontFamily: 'Inter', fontSize: 14, fontWeight: 500, color: '#181D17' }}>
-                    {selectedTotal.toLocaleString('vi-VN')} ₫
+                    {Math.round(selectedTotal).toLocaleString('vi-VN')} ₫
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -616,30 +616,30 @@ export default function CartPage() {
                     Phí vận chuyển:
                   </Typography>
                   <Typography sx={{ fontFamily: 'Inter', fontSize: 14, fontWeight: 500, color: '#181D17' }}>
-                    {shippingFee.toLocaleString('vi-VN')} ₫
+                    {Math.round(shippingFee).toLocaleString('vi-VN')} ₫
                   </Typography>
                 </Box>
               </Box>
 
               {/* Total */}
               <Box sx={{ py: 2, borderTop: '2px solid #e0e0e0', borderBottom: '2px solid #e0e0e0', display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-                <Typography sx={{ fontFamily: 'Manrope', fontSize: 16, fontWeight: 700, color: '#181D17' }}>
+                <Typography sx={{ fontFamily: 'Myriad Condensed', fontSize: 16, fontWeight: 700, color: '#181D17' }}>
                   Tổng tiền:
                 </Typography>
-                <Typography sx={{ fontFamily: 'Manrope', fontSize: 18, fontWeight: 700, color: '#0D631B' }}>
-                  {totalWithShipping.toLocaleString('vi-VN')} ₫
+                <Typography sx={{ fontFamily: 'Myriad Condensed', fontSize: 18, fontWeight: 700, color: '#0D631B' }}>
+                  {Math.round(totalWithShipping).toLocaleString('vi-VN')} ₫
                 </Typography>
               </Box>
 
               {/* Items Count Badge */}
               <Box sx={{ p: 2, backgroundColor: '#E8F5E9', borderRadius: 1, mb: 3, textAlign: 'center' }}>
-                <Typography sx={{ fontFamily: 'Manrope', fontSize: 14, fontWeight: 600, color: '#0D631B' }}>
+                <Typography sx={{ fontFamily: 'Myriad Condensed', fontSize: 18, fontWeight: 700, color: '#0D631B' }}>
                   {selectedItems.length} sản phẩm
                 </Typography>
               </Box>
 
               {/* Payment Methods */}
-              <Typography sx={{ fontFamily: 'Manrope', fontSize: 14, fontWeight: 700, color: '#181D17', mb: 2 }}>
+              <Typography sx={{ fontFamily: 'Myriad Condensed', fontSize: 18, fontWeight: 700, color: '#181D17', mb: 2 }}>
                Phương Thức Thanh Toán
               </Typography>
               <RadioGroup
@@ -679,7 +679,7 @@ export default function CartPage() {
                 sx={{
                   backgroundColor: '#0D631B',
                   color: 'white',
-                  fontFamily: 'Manrope',
+                  fontFamily: 'Myriad Condensed',
                   fontSize: 16,
                   fontWeight: 700,
                   py: 1.5,

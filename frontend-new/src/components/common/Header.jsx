@@ -16,13 +16,14 @@ import {
   AccountCircle,
   Favorite,
   Search,
+  Menu as MenuIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../hooks/useCart.jsx';
 import { useWishlist } from '../../hooks/useWishlist.jsx';
 import logoImage from '../../assets/logo.png';
 
-export default function Header() {
+export default function Header({ onFilterMenuToggle }) {
   const navigate = useNavigate();
   const { itemsCount } = useCart();
   const { count: wishlistCount } = useWishlist();
@@ -30,6 +31,14 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
   const [userType, setUserType] = useState(localStorage.getItem('userType'));
+
+  const handleFilterMenuClick = () => {
+    // Emit a custom event that HomePage will listen to
+    window.dispatchEvent(new CustomEvent('filterMenuToggle'));
+    if (onFilterMenuToggle) {
+      onFilterMenuToggle();
+    }
+  };
 
   // Listen to storage changes (from login/logout)
   useEffect(() => {
@@ -105,6 +114,14 @@ export default function Header() {
             gap: 3,
           }}
         >
+          {/* Hamburger Menu - Filter Button */}
+          <IconButton 
+            onClick={handleFilterMenuClick}
+            sx={{ display: { xs: 'flex', md: 'flex' }, color: '#0D631B', minWidth: 'auto' }}
+          >
+            <MenuIcon sx={{ fontSize: 28 }} />
+          </IconButton>
+
           {/* Logo */}
           <Box
             onClick={() => navigate('/')}
@@ -129,38 +146,12 @@ export default function Header() {
                 fontWeight: 900,
                 color: '#0D631B',
                 letterSpacing: '-1.2px',
-                fontFamily: '"Manrope","Inter",system-ui,sans-serif',
+                fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif',
                 lineHeight: '32px',
               }}
             >
               ShortDate
             </Box>
-          </Box>
-
-          {/* Nav links */}
-          <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 4 }}>
-            <Button
-              onClick={() => navigate('/')}
-              sx={{
-                color: '#0D631B',
-                fontWeight: 700,
-                borderBottom: '2px solid #0D631B',
-                borderRadius: 0,
-                pb: '4px',
-                minWidth: 'auto',
-              }}
-            >
-              Home
-            </Button>
-            <Button onClick={() => navigate('/search')} sx={{ color: '#181D17', fontWeight: 500, minWidth: 'auto' }}>
-              Categories
-            </Button>
-            <Button onClick={() => navigate('/search')} sx={{ color: '#181D17', fontWeight: 500, minWidth: 'auto' }}>
-              Location
-            </Button>
-            <Button onClick={() => navigate('/search?hsd=today')} sx={{ color: '#181D17', fontWeight: 500, minWidth: 'auto' }}>
-              Deals
-            </Button>
           </Box>
 
           {/* Search pill */}
@@ -178,7 +169,6 @@ export default function Header() {
               px: 2,
             }}
           >
-            <Search sx={{ fontSize: 19, color: '#0D631B' }} />
             <TextField
               variant="standard"
               placeholder="Tìm kiếm sản phẩm..."

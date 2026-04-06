@@ -112,7 +112,7 @@ const AddressManagementModal = ({ open, onClose, onAddressSelect, onAddressChang
         sx: { borderRadius: '16px', backgroundColor: '#F7FBF0' },
       }}
     >
-      <DialogTitle sx={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: '20px', color: '#181D17' }}>
+      <DialogTitle sx={{ fontFamily: 'Myriad Condensed', fontWeight: 700, fontSize: '20px', color: '#181D17' }}>
         📍 Chọn Địa Chỉ Giao Hàng
       </DialogTitle>
       <DialogContent sx={{ py: 2 }}>
@@ -146,7 +146,7 @@ const AddressManagementModal = ({ open, onClose, onAddressSelect, onAddressChang
                 >
                   <CardContent sx={{ pb: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', mb: 1 }}>
-                      <Typography sx={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: '16px', color: '#181D17' }}>
+                    <Typography sx={{ fontFamily: 'Myriad Condensed', fontWeight: 700, fontSize: '16px', color: '#181D17' }}>
                         {address.label}
                       </Typography>
                       {address.is_default && (

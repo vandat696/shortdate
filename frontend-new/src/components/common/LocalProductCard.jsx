@@ -98,7 +98,7 @@ export default function LocalProductCard({
         {/* Product Name */}
         <Typography
           sx={{
-            fontFamily: '"Manrope","Inter",system-ui,sans-serif',
+            fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif',
             fontWeight: 700,
             fontSize: '18px',
             lineHeight: '22px',
@@ -153,7 +153,7 @@ export default function LocalProductCard({
               color: '#0D631B',
             }}
           >
-            {price.toLocaleString('vi-VN')}₫
+            {Math.round(price).toLocaleString('vi-VN')}₫
           </Typography>
           <Box
             sx={{

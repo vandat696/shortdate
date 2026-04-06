@@ -45,7 +45,7 @@ export default function BundlesSection() {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 6 }}>
           <Typography
             sx={{
-              fontFamily: '"Manrope","Inter",system-ui,sans-serif',
+              fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif',
               fontWeight: 800,
               fontSize: 36,
               lineHeight: '40px',

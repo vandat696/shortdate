@@ -160,7 +160,7 @@ export default function CheckoutPage() {
           mx: 'auto'
         }}>
           <Typography sx={{ 
-            fontFamily: 'Manrope',
+            fontFamily: 'Myriad Condensed',
             fontWeight: 900,
             fontSize: '24px',
             lineHeight: '32px',
@@ -308,7 +308,7 @@ export default function CheckoutPage() {
               }}>
                 <Box>
                   <Typography sx={{ 
-                    fontFamily: 'Manrope',
+                    fontFamily: 'Myriad Condensed',
                     fontWeight: 800,
                     fontSize: '30px',
                     lineHeight: '36px',
@@ -388,7 +388,7 @@ export default function CheckoutPage() {
                       }}>
                         <Box>
                           <Typography sx={{ 
-                            fontFamily: 'Manrope',
+                            fontFamily: 'Myriad Condensed',
                             fontWeight: 700,
                             fontSize: '18px',
                             lineHeight: '22px',
@@ -417,7 +417,7 @@ export default function CheckoutPage() {
                             fontSize: '18px',
                             color: '#181D17'
                           }}>
-                            {(item.subtotal || 0).toLocaleString('vi-VN')}đ
+                            {Math.round(item.subtotal || 0).toLocaleString('vi-VN')}đ
                           </Typography>
                           <Typography sx={{ 
                             fontFamily: 'Inter',
@@ -426,7 +426,7 @@ export default function CheckoutPage() {
                             color: '#707A6C',
                             textDecoration: 'line-through'
                           }}>
-                            {((item.subtotal || 0) * 1.18).toLocaleString('vi-VN')}đ
+                            {Math.round((item.subtotal || 0) * 1.18).toLocaleString('vi-VN')}đ
                           </Typography>
                         </Box>
                       </Box>
@@ -500,7 +500,7 @@ export default function CheckoutPage() {
                 }}>
                   <LocationOnIcon sx={{ color: '#0D631B', fontSize: '20px' }} />
                   <Typography sx={{ 
-                    fontFamily: 'Manrope',
+                    fontFamily: 'Myriad Condensed',
                     fontWeight: 700,
                     fontSize: '20px',
                     color: '#181D17'
@@ -623,7 +623,7 @@ export default function CheckoutPage() {
                 }}>
                   <LocalShippingIcon sx={{ color: '#0D631B', fontSize: '20px' }} />
                   <Typography sx={{ 
-                    fontFamily: 'Manrope',
+                    fontFamily: 'Myriad Condensed',
                     fontWeight: 700,
                     fontSize: '20px',
                     color: '#181D17'
@@ -762,7 +762,7 @@ export default function CheckoutPage() {
                 }}>
                   <PaymentIcon sx={{ color: '#0D631B', fontSize: '20px' }} />
                   <Typography sx={{ 
-                    fontFamily: 'Manrope',
+                    fontFamily: 'Myriad Condensed',
                     fontWeight: 700,
                     fontSize: '20px',
                     color: '#181D17'
@@ -842,7 +842,7 @@ export default function CheckoutPage() {
               borderRadius: '32px'
             }}>
               <Typography sx={{ 
-                fontFamily: 'Manrope',
+                fontFamily: 'Myriad Condensed',
                 fontWeight: 800,
                 fontSize: '24px',
                 lineHeight: '32px',
@@ -871,7 +871,7 @@ export default function CheckoutPage() {
                     fontSize: '16px',
                     color: '#40493D'
                   }}>
-                    {computed.subtotal.toLocaleString('vi-VN')}đ
+                    {Math.round(computed.subtotal).toLocaleString('vi-VN')}đ
                   </Typography>
                 </Box>
 
@@ -894,7 +894,7 @@ export default function CheckoutPage() {
                     fontSize: '16px',
                     color: '#40493D'
                   }}>
-                    {computed.shippingFee.toLocaleString('vi-VN')}đ
+                    {Math.round(computed.shippingFee).toLocaleString('vi-VN')}đ
                   </Typography>
                 </Box>
 
@@ -960,7 +960,7 @@ export default function CheckoutPage() {
                     letterSpacing: '-1.8px',
                     color: '#181D17'
                   }}>
-                    {computed.grandTotal.toLocaleString('vi-VN')}đ
+                    {Math.round(computed.grandTotal).toLocaleString('vi-VN')}đ
                   </Typography>
                 </Box>
               </Stack>
@@ -977,7 +977,7 @@ export default function CheckoutPage() {
                   gap: '12px',
                   bgcolor: '#0D631B',
                   color: 'white',
-                  fontFamily: 'Manrope',
+                  fontFamily: 'Myriad Condensed',
                   fontWeight: 800,
                   fontSize: '20px',
                   borderRadius: '16px',
@@ -1107,7 +1107,7 @@ export default function CheckoutPage() {
           {/* Brand */}
           <Box>
             <Typography sx={{ 
-              fontFamily: 'Manrope',
+              fontFamily: 'Myriad Condensed',
               fontWeight: 700,
               fontSize: '18px',
               color: '#0D631B',

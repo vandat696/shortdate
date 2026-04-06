@@ -7,13 +7,14 @@ export function WishlistProvider({ children }) {
   const [wishlist, setWishlist] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const API_BASE_URL = getApiBaseUrl();
 
   // Fetch wishlist từ API
   const fetchWishlist = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const API_BASE_URL = getApiBaseUrl();
+      
       
       if (!token) {
         setWishlist([]);

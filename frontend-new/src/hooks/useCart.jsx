@@ -8,13 +8,14 @@ export function CartProvider({ children }) {
   const [selectedItems, setSelectedItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const API_BASE_URL = getApiBaseUrl();
 
   // Fetch cart từ API
   const fetchCart = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const API_BASE_URL = getApiBaseUrl();
+      
       
       if (!token) {
         // Chưa đăng nhập, load from localStorage

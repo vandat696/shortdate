@@ -119,7 +119,7 @@ export default function OrderTrackingPage() {
                       </Typography>
                     </Box>
                     <Typography sx={{ fontWeight: 900 }}>
-                      {(it.totalPrice || 0).toLocaleString('vi-VN')}đ
+                      {Math.round(it.totalPrice || 0).toLocaleString('vi-VN')}đ
                     </Typography>
                   </Box>
                 ))}
@@ -128,9 +128,9 @@ export default function OrderTrackingPage() {
               <Divider sx={{ my: 2 }} />
 
               <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                <Chip label={`Subtotal: ${(order.subtotal || 0).toLocaleString('vi-VN')}đ`} />
-                <Chip label={`Delivery: ${(order.shippingFee || 0).toLocaleString('vi-VN')}đ`} />
-                <Chip color="primary" label={`Total: ${(order.totalAmount || 0).toLocaleString('vi-VN')}đ`} />
+                <Chip label={`Subtotal: ${Math.round(order.subtotal || 0).toLocaleString('vi-VN')}đ`} />
+                <Chip label={`Delivery: ${Math.round(order.shippingFee || 0).toLocaleString('vi-VN')}đ`} />
+                <Chip color="primary" label={`Total: ${Math.round(order.totalAmount || 0).toLocaleString('vi-VN')}đ`} />
               </Stack>
             </Paper>
           </Grid>

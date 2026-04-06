@@ -153,7 +153,7 @@ export default function SupplierOrders() {
                     </TableCell>
                     <TableCell align="center">
                       <Typography variant="body2" sx={{ fontWeight: 700, color: '#2d5016' }}>
-                        ${order.total_amount?.toFixed(2) || '0.00'}
+                        ${Math.round(order.total_amount || 0).toLocaleString('en-US') || '0'}
                       </Typography>
                     </TableCell>
                     <TableCell align="center">
@@ -217,7 +217,7 @@ export default function SupplierOrders() {
               <Box>
                 <Typography variant="body2" sx={{ color: '#999' }}>Số tiền</Typography>
                 <Typography variant="body1" sx={{ fontWeight: 700, color: '#2d5016' }}>
-                  ${selectedOrder.total_amount?.toFixed(2) || '0.00'}
+                  ${Math.round(selectedOrder.total_amount || 0).toLocaleString('en-US') || '0'}
                 </Typography>
               </Box>
               <Box>

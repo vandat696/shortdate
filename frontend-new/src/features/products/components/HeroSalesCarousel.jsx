@@ -101,7 +101,7 @@ export default function HeroSalesCarousel({ products = [] }) {
         {!imageUrl && (
           <Typography
             sx={{
-              fontFamily: '"Manrope","Inter",system-ui,sans-serif',
+              fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif',
               fontWeight: 700,
               fontSize: '48px',
               color: 'rgba(0, 0, 0, 0.2)',
@@ -187,7 +187,7 @@ export default function HeroSalesCarousel({ products = [] }) {
         >
           <Typography
             sx={{
-              fontFamily: '"Manrope","Inter",system-ui,sans-serif',
+              fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif',
               fontWeight: 900,
               fontSize: '36px',
               lineHeight: '40px',
@@ -216,7 +216,7 @@ export default function HeroSalesCarousel({ products = [] }) {
         {/* Product Info - Bottom Left */}
         <Typography
           sx={{
-            fontFamily: '"Manrope","Inter",system-ui,sans-serif',
+            fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif',
             fontWeight: 700,
             fontSize: '18px',
             color: '#fff',
@@ -238,7 +238,7 @@ export default function HeroSalesCarousel({ products = [] }) {
             color: '#fff',
           }}
         >
-          {currentProduct.current_price.toLocaleString('vi-VN')}đ
+          {Math.round(currentProduct.current_price).toLocaleString('vi-VN')}đ
         </Typography>
       </Box>
 

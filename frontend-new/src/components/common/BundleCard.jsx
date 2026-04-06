@@ -59,7 +59,7 @@ export default function BundleCard({ title, description, price, bgColor, imageBg
       <Box sx={{ position: 'relative', zIndex: 1 }}>
         <Typography
           sx={{
-            fontFamily: '"Manrope","Inter",system-ui,sans-serif',
+            fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif',
             fontWeight: 900,
             fontSize: '24px',
             lineHeight: '32px',
@@ -95,7 +95,7 @@ export default function BundleCard({ title, description, price, bgColor, imageBg
             color: priceColor,
           }}
         >
-          {price.toLocaleString('vi-VN')}₫
+          {Math.round(price).toLocaleString('vi-VN')}₫
         </Typography>
         <Button
           variant="contained"

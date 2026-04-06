@@ -36,7 +36,7 @@ export default function FreshnessIndicator({ currentPrice, originalPrice, expiry
             <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1 }}>
               <Typography
                 sx={{
-                  fontFamily: '"Manrope","Inter",system-ui,sans-serif',
+                  fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif',
                   fontWeight: 800,
                   fontSize: '48px',
                   lineHeight: '48px',
@@ -44,7 +44,7 @@ export default function FreshnessIndicator({ currentPrice, originalPrice, expiry
                   color: '#181D17',
                 }}
               >
-                {currentPrice.toLocaleString('vi-VN')}₫
+                {Math.round(currentPrice).toLocaleString('vi-VN')}₫
               </Typography>
               <Typography
                 sx={{
@@ -56,7 +56,7 @@ export default function FreshnessIndicator({ currentPrice, originalPrice, expiry
                   color: '#707A6C',
                 }}
               >
-                {originalPrice.toLocaleString('vi-VN')}₫
+                {Math.round(originalPrice).toLocaleString('vi-VN')}₫
               </Typography>
             </Box>
           </Box>
@@ -72,7 +72,7 @@ export default function FreshnessIndicator({ currentPrice, originalPrice, expiry
           >
             <Typography
               sx={{
-                fontFamily: '"Manrope","Inter",system-ui,sans-serif',
+                fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif',
                 fontWeight: 700,
                 fontSize: '18px',
                 lineHeight: '28px',
@@ -100,7 +100,7 @@ export default function FreshnessIndicator({ currentPrice, originalPrice, expiry
           <Box>
             <Typography
               sx={{
-                fontFamily: '"Manrope","Inter",system-ui,sans-serif',
+                fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif',
                 fontWeight: 700,
                 fontSize: '12px',
                 lineHeight: '16px',
@@ -130,7 +130,7 @@ export default function FreshnessIndicator({ currentPrice, originalPrice, expiry
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography
             sx={{
-              fontFamily: '"Manrope","Inter",system-ui,sans-serif',
+              fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif',
               fontWeight: 700,
               fontSize: '14px',
               lineHeight: '20px',
@@ -200,7 +200,7 @@ export default function FreshnessIndicator({ currentPrice, originalPrice, expiry
           </Box>
           <Typography
             sx={{
-              fontFamily: '"Manrope","Inter",system-ui,sans-serif',
+              fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif',
               fontWeight: 800,
               fontSize: '16px',
               lineHeight: '24px',
@@ -241,7 +241,7 @@ export default function FreshnessIndicator({ currentPrice, originalPrice, expiry
           </Box>
           <Typography
             sx={{
-              fontFamily: '"Manrope","Inter",system-ui,sans-serif',
+              fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif',
               fontWeight: 800,
               fontSize: '16px',
               lineHeight: '24px',
@@ -281,7 +281,7 @@ export default function FreshnessIndicator({ currentPrice, originalPrice, expiry
         <Box>
           <Typography
             sx={{
-              fontFamily: '"Manrope","Inter",system-ui,sans-serif',
+              fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif',
               fontWeight: 700,
               fontSize: '14px',
               lineHeight: '20px',

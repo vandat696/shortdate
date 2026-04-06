@@ -242,7 +242,7 @@ export default function SupplierProductsPage() {
                       </TableCell>
                       <TableCell align="right">
                         <Typography variant="body2">
-                          {product.current_price.toLocaleString('vi-VN')}đ
+                          {Math.round(product.current_price).toLocaleString('vi-VN')}đ
                         </Typography>
                       </TableCell>
                       <TableCell align="center">

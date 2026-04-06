@@ -93,7 +93,7 @@ export default function SupplierAnalytics() {
                     Tổng doanh thu
                   </Typography>
                   <Typography variant="h5" sx={{ fontWeight: 700, color: '#2d5016', mt: 1 }}>
-                    ${analytics.totalRevenue?.toFixed(2) || '0.00'}
+                    ${Math.round(analytics.totalRevenue || 0).toLocaleString('en-US') || '0'}
                   </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 1 }}>
                     <TrendingUpIcon sx={{ fontSize: 16, color: '#4caf50' }} />
@@ -143,7 +143,7 @@ export default function SupplierAnalytics() {
                     Giá trị trung bình đơn hàng
                   </Typography>
                   <Typography variant="h5" sx={{ fontWeight: 700, color: '#2d5016', mt: 1 }}>
-                    ${analytics.averageOrderValue?.toFixed(2) || '0.00'}
+                    ${Math.round(analytics.averageOrderValue || 0).toLocaleString('en-US') || '0'}
                   </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 1 }}>
                     <TrendingDownIcon sx={{ fontSize: 16, color: '#f44336' }} />
@@ -213,7 +213,7 @@ export default function SupplierAnalytics() {
                   </Typography>
                 </Box>
                 <Typography variant="body2" sx={{ fontWeight: 700, color: '#2d5016' }}>
-                  ${product.revenue?.toFixed(2) || '0.00'}
+                  ${Math.round(product.revenue || 0).toLocaleString('en-US') || '0'}
                 </Typography>
               </Box>
             ))}

@@ -35,7 +35,7 @@ export default function Footer() {
               />
               <Typography
                 sx={{
-                  fontFamily: '"Manrope","Inter",system-ui,sans-serif',
+                  fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif',
                   fontWeight: 900,
                   fontSize: '18px',
                   lineHeight: '28px',

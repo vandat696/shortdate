@@ -56,6 +56,7 @@ export default function SupplierInfoCard({
   return (
     <Card
       sx={{
+        width: '100%',
         p: 4,
         backgroundColor: '#FFFFFF',
         borderRadius: '24px',
@@ -68,7 +69,7 @@ export default function SupplierInfoCard({
         <StoreIcon sx={{ fontSize: '24px', color: '#0D631B' }} />
         <Typography
           sx={{
-            fontFamily: '"Manrope","Inter",system-ui,sans-serif',
+            fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif',
             fontWeight: 800,
             fontSize: '20px',
             lineHeight: '28px',
@@ -82,7 +83,7 @@ export default function SupplierInfoCard({
       {/* Shop Name */}
       <Typography
         sx={{
-          fontFamily: '"Manrope","Inter",system-ui,sans-serif',
+          fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif',
           fontWeight: 700,
           fontSize: '16px',
           lineHeight: '24px',

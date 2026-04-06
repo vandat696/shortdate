@@ -50,7 +50,7 @@ export default function ProductDetailsSection() {
       >
         <Typography
           sx={{
-            fontFamily: '"Manrope","Inter",system-ui,sans-serif',
+            fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif',
             fontWeight: 900,
             fontSize: '30px',
             lineHeight: '36px',
@@ -119,7 +119,7 @@ export default function ProductDetailsSection() {
                 <Box>
                   <Typography
                     sx={{
-                      fontFamily: '"Manrope","Inter",system-ui,sans-serif',
+                      fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif',
                       fontWeight: 700,
                       fontSize: '14px',
                       lineHeight: '20px',
@@ -192,7 +192,7 @@ export default function ProductDetailsSection() {
                   <Box sx={{ fontSize: '24px' }}>🌍</Box>
                   <Typography
                     sx={{
-                      fontFamily: '"Manrope","Inter",system-ui,sans-serif',
+                      fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif',
                       fontWeight: 800,
                       fontSize: '18px',
                       lineHeight: '28px',
@@ -231,7 +231,7 @@ export default function ProductDetailsSection() {
                   <Box sx={{ fontSize: '24px' }}>💰</Box>
                   <Typography
                     sx={{
-                      fontFamily: '"Manrope","Inter",system-ui,sans-serif',
+                      fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif',
                       fontWeight: 800,
                       fontSize: '18px',
                       lineHeight: '28px',
@@ -275,7 +275,7 @@ export default function ProductDetailsSection() {
       <Box sx={{ marginTop: 4 }}>
         <Typography
           sx={{
-            fontFamily: '"Manrope","Inter",system-ui,sans-serif',
+            fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif',
             fontWeight: 900,
             fontSize: '24px',
             lineHeight: '32px',
