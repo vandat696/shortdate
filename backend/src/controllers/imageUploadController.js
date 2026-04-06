@@ -1,5 +1,18 @@
 import { supabase } from '../config/supabase.js';
 import db from '../config/database.js';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const UPLOAD_DIR = path.join(__dirname, '../../uploads/products');
+
+// Ensure upload directory exists
+if (!fs.existsSync(UPLOAD_DIR)) {
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+  console.log('[ImageUploadController] Created upload directory:', UPLOAD_DIR);
+}
 
 class ImageUploadController {
   /**
@@ -61,15 +74,18 @@ class ImageUploadController {
       const uploadedImages = [];
       let nextPosition = existingCount + 1;
 
-      // Save each file to Supabase
+      // Save each file to Supabase (fallback to local if fails)
       for (const file of req.files) {
         try {
           // Generate unique filename
           const fileExt = file.originalname.split('.').pop();
           const fileName = `product-${productId}-${nextPosition}-${Date.now()}.${fileExt}`;
           const filePath = `products/${fileName}`;
+          
+          let imageUrl = null;
 
-          // Upload to Supabase Storage
+          // Try Supabase first
+          console.log('[Upload] Attempting Supabase upload:', filePath);
           const { data, error } = await supabase.storage
             .from('products')
             .upload(filePath, file.buffer, {
@@ -79,27 +95,43 @@ class ImageUploadController {
             });
 
           if (error) {
-            console.error('Supabase upload error:', error);
-            continue;
+            console.warn('[Upload] Supabase upload failed:', error.message);
+            console.log('[Upload] Falling back to local storage...');
+            
+            // FALLBACK: Save locally
+            try {
+              const localPath = path.join(UPLOAD_DIR, fileName);
+              fs.writeFileSync(localPath, file.buffer);
+              imageUrl = `/uploads/products/${fileName}`;
+              console.log('[Upload] Saved locally:', imageUrl);
+            } catch (localError) {
+              console.error('[Upload] Local save failed:', localError.message);
+              continue;
+            }
+          } else {
+            // Supabase success - get public URL
+            const { data: { publicUrl } } = supabase.storage
+              .from('products')
+              .getPublicUrl(filePath);
+            imageUrl = publicUrl;
+            console.log('[Upload] Saved to Supabase:', imageUrl);
           }
 
-          // Get public URL
-          const { data: { publicUrl } } = supabase.storage
-            .from('products')
-            .getPublicUrl(filePath);
+          // Save to database
+          if (imageUrl) {
+            const imageResult = await db.query(
+              `INSERT INTO product_images (product_id, image_url, position)
+               VALUES ($1, $2, $3)
+               RETURNING id, image_url, position`,
+              [productId, imageUrl, nextPosition]
+            );
 
-          // Save to database with Supabase URL
-          const imageResult = await db.query(
-            `INSERT INTO product_images (product_id, image_url, position)
-             VALUES ($1, $2, $3)
-             RETURNING id, image_url, position`,
-            [productId, publicUrl, nextPosition]
-          );
-
-          uploadedImages.push(imageResult.rows[0]);
-          nextPosition++;
+            uploadedImages.push(imageResult.rows[0]);
+            console.log('[Upload] Inserted into database:', { productId, imageUrl, position: nextPosition });
+            nextPosition++;
+          }
         } catch (error) {
-          console.error('Error saving image:', error);
+          console.error('[Upload] Error processing file:', error.message);
           continue;
         }
       }

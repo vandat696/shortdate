@@ -6,13 +6,30 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
 export default function ProductImageGallery({ mainImage, thumbnails, allImages = [], discountPercentage = 38 }) {
-  // If allImages provided, use all images and extract thumbnails (skip first which is main)
-  // Otherwise fall back to thumbnails
-  const images = allImages && allImages.length > 0 ? allImages.slice(1) : (thumbnails || []);
-  
-  // Convert main image to full URL - use first image from allImages if mainImage not provided
+  // Determine which image URL to use as main display
   const imageToDisplay = mainImage || (allImages && allImages.length > 0 ? allImages[0]?.image_url : null);
   const currentMainImageUrl = imageToDisplay ? getImageUrl(imageToDisplay) : '';
+  
+  // Extract thumbnail images
+  // When mainImage is passed separately + allImages provided:
+  //   - allImages contains all images including main at index 0
+  //   - Skip first image (main) and use the rest as thumbnails
+  // When only allImages is provided without mainImage:
+  //   - Use allImages as-is for thumbnails (assuming first is already removed by caller)
+  // Fallback: use thumbnails prop if provided
+  let images = [];
+  if (allImages && allImages.length > 0) {
+    // If mainImage is passed separately, skip the first image in allImages (it's likely the main)
+    if (mainImage) {
+      images = allImages.slice(1);
+    } else {
+      // No mainImage prop, use allImages as-is for thumbnails
+      images = allImages;
+    }
+  } else if (thumbnails && thumbnails.length > 0) {
+    // Fallback to thumbnails prop if provided
+    images = thumbnails;
+  }
   
   // Debug log
   console.log('🖼️ ProductImageGallery:', { 
@@ -20,7 +37,9 @@ export default function ProductImageGallery({ mainImage, thumbnails, allImages =
     allImages, 
     imageToDisplay,
     currentMainImageUrl,
-    imagesCount: images.length 
+    thumbnailCount: images.length,
+    hasMainImageProp: !!mainImage,
+    allImagesCount: allImages.length
   });
   
   // Track which image is currently displayed
@@ -166,67 +185,58 @@ export default function ProductImageGallery({ mainImage, thumbnails, allImages =
         )}
       </Box>
 
-      {/* Thumbnail Gallery - Fixed width container matching main image */}
+      {/* Thumbnail Gallery - Fixed 4 slots (3 thumbnails + "+More" button) */}
       {images.length > 0 && (
         <Box
           sx={{
-            width: '400px',
             display: 'flex',
             gap: '12px',
             justifyContent: 'flex-start',
           }}
         >
-          {(() => {
-            // Calculate which 3 thumbnails to show around current image
-            const startIndex = Math.max(0, currentImageIndex - 1);
-            const endIndex = Math.min(images.length, startIndex + 3);
-            const adjustedStart = Math.max(0, endIndex - 3);
-            
-            return images.slice(adjustedStart, endIndex).map((img, sliceIndex) => {
-              const actualIndex = adjustedStart + sliceIndex;
-              const imageUrl = getImageUrl(img.image_url || img.src);
-              const imageId = img.id || actualIndex;
-              // Index in allImages is actualIndex + 1 (since allImages[0] is main image)
-              const allImagesIndex = actualIndex + 1;
-              return (
-                <Box
-                  key={imageId}
-                  onClick={() => {
-                    handleThumbnailClick(img.image_url || img.src);
-                    setCurrentImageIndex(allImagesIndex);
-                  }}
-                  sx={{
-                    flex: 1,
-                    aspectRatio: '1/1',
-                    backgroundColor: '#F1F5EB',
-                    borderRadius: '16px',
-                    cursor: 'pointer',
-                    overflow: 'hidden',
-                    backgroundImage: `url(${imageUrl})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat',
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    border: currentMainImage === imageUrl 
-                      ? '3px solid #0D631B' 
-                      : '2px solid rgba(13, 99, 27, 0.2)',
-                    boxShadow: currentMainImage === imageUrl
-                      ? '0px 4px 16px rgba(13, 99, 27, 0.2)'
-                      : '0px 2px 8px rgba(0, 0, 0, 0.08)',
-                    '&:hover': {
-                      boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.15)',
-                      border: currentMainImage === imageUrl
-                        ? '3px solid #0D631B'
-                        : '2px solid #0D631B80',
-                      transform: 'translateY(-4px)',
-                    },
-                  }}
-                />
-              );
-            });
-          })()}
+          {/* Display first 3 thumbnails with fixed size */}
+          {images.slice(0, 3).map((img, index) => {
+            const imageUrl = getImageUrl(img.image_url || img.src);
+            const imageId = img.id || index;
+            const allImagesIndex = index + 1;
+            return (
+              <Box
+                key={imageId}
+                onClick={() => {
+                  handleThumbnailClick(img.image_url || img.src);
+                  setCurrentImageIndex(allImagesIndex);
+                }}
+                sx={{
+                  width: '120px',
+                  height: '120px',
+                  backgroundColor: '#F1F5EB',
+                  borderRadius: '16px',
+                  cursor: 'pointer',
+                  overflow: 'hidden',
+                  backgroundImage: `url(${imageUrl})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  border: currentMainImage === imageUrl 
+                    ? '3px solid #0D631B' 
+                    : '2px solid rgba(13, 99, 27, 0.2)',
+                  boxShadow: currentMainImage === imageUrl
+                    ? '0px 4px 16px rgba(13, 99, 27, 0.2)'
+                    : '0px 2px 8px rgba(0, 0, 0, 0.08)',
+                  '&:hover': {
+                    boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.15)',
+                    border: currentMainImage === imageUrl
+                      ? '3px solid #0D631B'
+                      : '2px solid #0D631B80',
+                    transform: 'translateY(-4px)',
+                  },
+                }}
+              />
+            );
+          })}
           
-          {/* "+X More" Button if more than 3 images */}
+          {/* "+X More" Button - Always shown if more than 3 images */}
           {images.length > 3 && (
             <Box
               onClick={() => {
@@ -234,8 +244,8 @@ export default function ProductImageGallery({ mainImage, thumbnails, allImages =
                 setSelectedImageIndex(3);
               }}
               sx={{
-                flex: 1,
-                aspectRatio: '1/1',
+                width: '120px',
+                height: '120px',
                 backgroundColor: '#F1F5EB',
                 borderRadius: '16px',
                 cursor: 'pointer',
