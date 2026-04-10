@@ -22,6 +22,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../hooks/useCart.jsx';
 import { useWishlist } from '../../hooks/useWishlist.jsx';
 import logoImage from '../../assets/logo.png';
+import shortdateNameImage from '../../../image/shortdate-name.png';
 
 export default function Header({ onFilterMenuToggle }) {
   const navigate = useNavigate();
@@ -136,22 +137,19 @@ export default function Header({ onFilterMenuToggle }) {
               src={logoImage} 
               alt="ShortDate Logo"
               style={{
-                height: '48px',
+                height: '65px',
+                objectFit: 'contain',
+                paddingBottom: '5px',
+              }}
+            />
+            <img 
+              src={shortdateNameImage} 
+              alt="ShortDate"
+              style={{
+                height: '50px',
                 objectFit: 'contain',
               }}
             />
-            <Box
-              sx={{
-                fontSize: 24,
-                fontWeight: 900,
-                color: '#0D631B',
-                letterSpacing: '-1.2px',
-                fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif',
-                lineHeight: '32px',
-              }}
-            >
-              ShortDate
-            </Box>
           </Box>
 
           {/* Search pill */}

@@ -11,6 +11,7 @@ import orderRoutes from './src/routes/orders.js';
 import wishlistRoutes from './src/routes/wishlist.js';
 import imageRoutes from './src/routes/images.js';
 import addressRoutes from './src/routes/addresses.js';
+import ratingRoutes from './src/routes/ratings.js';
 import { initializeCronJobs } from './src/modules/cronJobs.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -63,6 +64,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/images', imageRoutes);
 app.use('/api/addresses', addressRoutes);
+app.use('/api/ratings', ratingRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

@@ -15,6 +15,8 @@ import { productService, imageService } from '../../../services/api';
 import ProductImageGallery from '../components/ProductImageGallery';
 import ProductControls from '../components/ProductControls';
 import SupplierInfoCard from '../components/SupplierInfoCard';
+import { RatingStars, RatingForm, RatingsList, useRating } from '../../../features/ratings';
+import { useAuth } from '../../../hooks/useAuth';
 import axios from 'axios';
 
 // Helper: Calculate days remaining
@@ -43,6 +45,9 @@ function formatDate(dateStr) {
 export default function ProductDetailPage() {
   const { productId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { stats, fetchStats, fetchRatings, loading: ratingLoading } = useRating(parseInt(productId));
+  
   const [product, setProduct] = useState(null);
   const [userZip, setUserZip] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
@@ -50,6 +55,14 @@ export default function ProductDetailPage() {
   const [error, setError] = useState(null);
   const [priceHistory, setPriceHistory] = useState([]);
   const [priceChartLoading, setPriceChartLoading] = useState(false);
+  const [ratingsRefreshKey, setRatingsRefreshKey] = useState(0);
+
+  // Fetch rating stats on component mount
+  useEffect(() => {
+    if (productId) {
+      fetchStats();
+    }
+  }, [productId, fetchStats]);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -260,17 +273,32 @@ export default function ProductDetailPage() {
 
                   {/* Rating Badge */}
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Box sx={{ width: '11.67px', height: '11.08px', backgroundColor: '#964900' }} />
-                    <Typography
-                      sx={{
-                        fontFamily: '"Inter",system-ui,sans-serif',
-                        fontWeight: 700,
-                        fontSize: '14px',
-                        color: '#964900',
-                      }}
-                    >
-                      4.9 (124 reviews)
-                    </Typography>
+                    {stats && stats.total_ratings > 0 ? (
+                      <>
+                        <Box sx={{ width: '11.67px', height: '11.08px', backgroundColor: '#964900' }} />
+                        <Typography
+                          sx={{
+                            fontFamily: '"Inter",system-ui,sans-serif',
+                            fontWeight: 700,
+                            fontSize: '14px',
+                            color: '#964900',
+                          }}
+                        >
+                          {parseFloat(stats.average_rating).toFixed(1)} ({stats.total_ratings} đánh giá)
+                        </Typography>
+                      </>
+                    ) : (
+                      <Typography
+                        sx={{
+                          fontFamily: '"Inter",system-ui,sans-serif',
+                          fontWeight: 700,
+                          fontSize: '14px',
+                          color: '#707A6C',
+                        }}
+                      >
+                        Chưa có đánh giá
+                      </Typography>
+                    )}
                   </Box>
 
                   {/* Product Name */}
@@ -530,7 +558,7 @@ export default function ProductDetailPage() {
 
           {/* Price History Chart Section */}
           {priceHistory.length > 0 && (
-            <Box sx={{ mb: 8, display: 'block', width: '100%' }}>
+            <Box sx={{ mb: 8, display: 'grid', width: '100%' }}>
               <Typography
                 sx={{
                   fontFamily: '"Myriad Condensed",system-ui,sans-serif',
@@ -557,8 +585,8 @@ export default function ProductDetailPage() {
                     <CircularProgress sx={{ color: '#0D631B' }} />
                   </Box>
                 ) : (
-                  <Box sx={{ width: '100%', height: 400 }}>
-                    <ResponsiveContainer width="100%" height="100%">
+                  <Box sx={{ width: '100%', height: 400, minWidth: 0, overflow: 'auto' }}>
+                    <ResponsiveContainer width="100%" height={400}>
                       <LineChart data={priceHistory}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#EBEFE5" />
                         <XAxis 
@@ -615,6 +643,74 @@ export default function ProductDetailPage() {
             supplierAddress={product.description}
           />
 
+          {/* Rating & Reviews Section */}
+          <Box sx={{ mb: 8 }}>
+            {/* Rating Overview */}
+            {stats && (
+              <Box sx={{ mb: 6 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 4 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <Typography
+                      sx={{
+                        fontFamily: '"Myriad Condensed",system-ui,sans-serif',
+                        fontWeight: 900,
+                        fontSize: '24px',
+                        lineHeight: '32px',
+                        letterSpacing: '-1.2px',
+                        color: '#181D17',
+                      }}
+                    >
+                      Đánh giá & Nhận xét
+                    </Typography>
+                  </Box>
+                  {stats.total_ratings > 0 && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <RatingStars 
+                        rating={parseFloat(stats.average_rating)} 
+                        count={parseInt(stats.total_ratings)} 
+                        size="medium" 
+                      />
+                    </Box>
+                  )}
+                </Box>
+              </Box>
+            )}
+
+            {/* Rating Form - Anyone can see, but must login to submit */}
+            <Box sx={{ mb: 6 }}>
+              <RatingForm
+                productId={parseInt(productId)}
+                onSubmitSuccess={async () => {
+                  // Refresh ratings list and stats
+                  console.log('🎯 [ProductDetailPage] Rating submitted successfully, refreshing data...');
+                  try {
+                    console.log('🎯 [ProductDetailPage] Calling fetchRatings(10, 0)');
+                    await fetchRatings(10, 0); // Fetch first page
+                    console.log('🎯 [ProductDetailPage] Ratings fetched successfully');
+                  } catch (err) {
+                    console.error('🎯 [ProductDetailPage] Error fetching ratings:', err);
+                  }
+                  
+                  try {
+                    console.log('🎯 [ProductDetailPage] Calling fetchStats()');
+                    await fetchStats(); // Update stats
+                    console.log('🎯 [ProductDetailPage] Stats fetched successfully');
+                  } catch (err) {
+                    console.error('🎯 [ProductDetailPage] Error fetching stats:', err);
+                  }
+                  
+                  console.log('🎯 [ProductDetailPage] Incrementing ratingsRefreshKey');
+                  // Force RatingsList to re-mount with fresh data
+                  setRatingsRefreshKey(prev => prev + 1);
+                  console.log('🎯 [ProductDetailPage] Refresh complete');
+                }}
+              />
+            </Box>
+
+            {/* Rating List */}
+            <RatingsList key={ratingsRefreshKey} productId={parseInt(productId)} isLoading={ratingLoading} />
+          </Box>
+
           {/* Related Products Section */}
           <Box sx={{ mb: 8 }}>
             <Typography
@@ -633,7 +729,7 @@ export default function ProductDetailPage() {
             <Grid container spacing={3}>
               {relatedProducts.length > 0 ? (
                 relatedProducts.map((relatedProduct) => (
-                  <Grid item xs={12} sm={6} md={3} key={relatedProduct.id}>
+                  <Grid item xs={12} md={6} lg={3} key={relatedProduct.id}>
                     <Box
                       onClick={() => navigate(`/products/${relatedProduct.id}`)}
                       sx={{
