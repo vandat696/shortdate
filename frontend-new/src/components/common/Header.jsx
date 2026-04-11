@@ -133,7 +133,7 @@ export default function Header({ onFilterMenuToggle }) {
               gap: 1.5,
             }}
           >
-            <img 
+            {/* <img 
               src={logoImage} 
               alt="ShortDate Logo"
               style={{
@@ -141,7 +141,7 @@ export default function Header({ onFilterMenuToggle }) {
                 objectFit: 'contain',
                 paddingBottom: '5px',
               }}
-            />
+            /> */}
             <img 
               src={shortdateNameImage} 
               alt="ShortDate"

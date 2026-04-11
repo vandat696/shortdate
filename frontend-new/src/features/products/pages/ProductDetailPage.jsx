@@ -1,4 +1,4 @@
-import { Box, Container, Grid, Typography, CircularProgress } from '@mui/material';
+import { Box, Container, Grid, Typography, CircularProgress, Rating } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
@@ -275,7 +275,12 @@ export default function ProductDetailPage() {
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     {stats && stats.total_ratings > 0 ? (
                       <>
-                        <Box sx={{ width: '11.67px', height: '11.08px', backgroundColor: '#964900' }} />
+                        <Rating 
+                          value={parseFloat(stats.average_rating)} 
+                          readOnly 
+                          size="small"
+                          sx={{ color: '#ffc107' }}
+                        />
                         <Typography
                           sx={{
                             fontFamily: '"Inter",system-ui,sans-serif',
