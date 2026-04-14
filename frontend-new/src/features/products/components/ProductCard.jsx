@@ -73,7 +73,7 @@ export default function ProductCard({ product }) {
         sx={{
           width: '100%',
           height: '140px',
-          flexShrink: 0,   // ✅ never shrink
+          flexShrink: 0, 
           position: 'relative',
           backgroundColor: '#E0E4DA',
           backgroundImage: imageUrl

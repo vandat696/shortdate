@@ -328,6 +328,7 @@ export default function ProductDetailPage() {
                       fontFamily: '"Myriad Condensed",system-ui,sans-serif',
                       fontWeight: 800,
                       fontSize: '36px',
+                      width: '550px',
                       lineHeight: '36px',
                       letterSpacing: '-1.8px',
                       color: '#181D17',
