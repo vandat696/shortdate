@@ -14,7 +14,7 @@ export default function ProductCard({ product }) {
     ((product.original_price - product.current_price) / product.original_price) * 100
   );
 
-  // Tính khoảng cách từ user đến supplier
+  // Calculate distance from user to supplier
   const userLocation = (() => {
     try {
       const loc = localStorage.getItem('userLocation');
@@ -30,7 +30,7 @@ export default function ProductCard({ product }) {
     product.supplier_longitude
   );
 
-  // Format hạn sử dụng
+  // Format expiry date
   const formatExpiryDate = (dateString) => {
     if (!dateString) return null;
     try {
@@ -60,25 +60,27 @@ export default function ProductCard({ product }) {
         display: 'flex',
         flexDirection: 'column',
         height: '300px',
-        minWidth: '160px',
+        width: '185px',
+        flexShrink: 0,
         '&:hover': {
           boxShadow: '0px 10px 25px rgba(0, 0, 0, 0.1)',
           transform: 'translateY(-4px)',
         },
       }}
     >
-      {/* Image Container */}
+      {/* Image Container — fixed height */}
       <Box
         sx={{
           width: '100%',
           height: '140px',
+          flexShrink: 0,   // ✅ never shrink
           position: 'relative',
           backgroundColor: '#E0E4DA',
-          overflow: 'hidden',
-          backgroundImage: imageUrl ? `url(${imageUrl})` : 'linear-gradient(135deg, #EBEFE5 0%, #D9E0D5 100%)',
+          backgroundImage: imageUrl
+            ? `url(${imageUrl})`
+            : 'linear-gradient(135deg, #EBEFE5 0%, #D9E0D5 100%)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          flexShrink: 0,
         }}
       >
         {/* Discount Badge */}
@@ -109,7 +111,7 @@ export default function ProductCard({ product }) {
         )}
       </Box>
 
-      {/* Content */}
+      {/* Content — remaining space after image */}
       <Box
         sx={{
           padding: '12px 14px',
@@ -118,9 +120,10 @@ export default function ProductCard({ product }) {
           gap: '4px',
           flex: 1,
           minHeight: 0,
+          overflow: 'hidden',
         }}
       >
-        {/* Product Name */}
+        {/* Product Name — 2 lines fixed */}
         <Typography
           sx={{
             fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif',
@@ -132,8 +135,9 @@ export default function ProductCard({ product }) {
             WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical',
             overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            flexShrink: 0,
             minHeight: '32px',
-            maxHeight: '32px',
           }}
         >
           {product.name}
@@ -141,16 +145,14 @@ export default function ProductCard({ product }) {
 
         {/* Star Rating */}
         {product.average_rating && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', minHeight: '16px' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', height: '16px', flexShrink: 0 }}>
             <Rating
               value={Number(product.average_rating) || 0}
               readOnly
               size="small"
-              sx={{ 
+              sx={{
                 color: '#ffc107',
-                '& .MuiRating-icon': {
-                  fontSize: '14px',
-                }
+                '& .MuiRating-icon': { fontSize: '14px' },
               }}
             />
             <Typography
@@ -168,9 +170,30 @@ export default function ProductCard({ product }) {
         )}
 
         {/* Supplier & Distance */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', minHeight: '16px', overflow: 'hidden' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            height: '16px',
+            flexShrink: 0,
+            // ✅ minWidth: 0 so flex children can truncate
+            minWidth: 0,
+            overflow: 'hidden',
+          }}
+        >
           {product.supplier_name && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: '3px', minWidth: 0, flex: 1 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '3px',
+                // ✅ flex: 1 + minWidth: 0 for proper truncate
+                flex: 1,
+                minWidth: 0,
+                overflow: 'hidden',
+              }}
+            >
               <StoreIcon sx={{ fontSize: '11px', color: '#666666', flexShrink: 0 }} />
               <Typography
                 sx={{
@@ -179,9 +202,10 @@ export default function ProductCard({ product }) {
                   fontSize: '9px',
                   lineHeight: '12px',
                   color: '#666666',
-                  textOverflow: 'ellipsis',
+                  // ✅ single-line ellipsis
                   overflow: 'hidden',
                   whiteSpace: 'nowrap',
+                  textOverflow: 'ellipsis',
                 }}
               >
                 {product.supplier_name}
@@ -197,6 +221,7 @@ export default function ProductCard({ product }) {
                 fontSize: '9px',
                 lineHeight: '12px',
                 color: '#0D631B',
+                whiteSpace: 'nowrap',
               }}
             >
               {supplierDistance}
@@ -206,7 +231,7 @@ export default function ProductCard({ product }) {
 
         {/* Expiry Date */}
         {expiryDate && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', minHeight: '14px' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', height: '14px', flexShrink: 0 }}>
             <CalendarTodayIcon sx={{ fontSize: '11px', color: '#D68800', flexShrink: 0 }} />
             <Typography
               sx={{
@@ -215,6 +240,7 @@ export default function ProductCard({ product }) {
                 fontSize: '9px',
                 lineHeight: '12px',
                 color: '#D68800',
+                whiteSpace: 'nowrap',
               }}
             >
               HSD: {expiryDate}
@@ -222,7 +248,7 @@ export default function ProductCard({ product }) {
           </Box>
         )}
 
-        {/* Description */}
+        {/* Description — 2 lines fixed, NO nowrap */}
         {product.description && (
           <Typography
             sx={{
@@ -231,18 +257,30 @@ export default function ProductCard({ product }) {
               fontSize: '9px',
               lineHeight: '12px',
               color: '#666666',
-              textOverflow: 'ellipsis',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
               overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              minHeight: '12px',
+              textOverflow: 'ellipsis',
+              flexShrink: 0,
+              minHeight: '24px',
             }}
           >
             {product.description}
           </Typography>
         )}
 
-        {/* Pricing */}
-        <Box sx={{ display: 'flex', alignItems: 'baseline', gap: '8px', mt: 'auto', pt: '2px' }}>
+        {/* Pricing — always at bottom */}
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'baseline',
+            gap: '8px',
+            mt: 'auto',  // ✅ push to bottom
+            pt: '2px',
+            flexShrink: 0,
+          }}
+        >
           <Typography
             sx={{
               fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif',
@@ -250,6 +288,7 @@ export default function ProductCard({ product }) {
               fontSize: '14px',
               lineHeight: '20px',
               color: '#181D17',
+              whiteSpace: 'nowrap',
             }}
           >
             {Math.round(product.current_price).toLocaleString('vi-VN')}₫
@@ -262,6 +301,7 @@ export default function ProductCard({ product }) {
               lineHeight: '14px',
               textDecoration: 'line-through',
               color: '#BFCCBA',
+              whiteSpace: 'nowrap',
             }}
           >
             {Math.round(product.original_price).toLocaleString('vi-VN')}₫
