@@ -8,16 +8,16 @@ import {
   updateProduct,
   updateInventory,
   deleteProduct,
-  getCategories,
   getExpiringProducts,
   getLowStockProducts
 } from '../controllers/productController.js';
+import { getCategories } from '../controllers/categoryController.js';
 
 const router = express.Router();
 
 // Public routes
 router.get('/all', getAllProducts); // Lấy danh sách sản phẩm (cho Buyer - tìm kiếm & lọc)
-router.get('/categories', getCategories); // Lấy danh sách danh mục
+router.get('/categories', getCategories); // Lấy danh sách danh mục (từ categoryController)
 
 // Protected routes - specific supplier routes MUST come before /:id catch-all
 router.get('/supplier/list', authenticateToken, getSupplierProducts); // Danh sách sản phẩm của Supplier

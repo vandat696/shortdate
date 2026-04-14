@@ -1,17 +1,58 @@
-import { Box, Typography, Container } from '@mui/material';
+import { Box, Typography, Container, CircularProgress } from '@mui/material';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import CategoryCard from '../../../components/common/CategoryCard';
+import { productService } from '../../../services/api';
+
+// Xác định category là freshness hay không (dựa trên name)
+const isFreshCategory = (categoryName) => {
+  const freshKeywords = ['rau', 'quả', 'trái cây', 'thịt', 'cá', 'hải sản', 'seafood', 'meat', 'vegetables', 'fruits'];
+  return freshKeywords.some(keyword => categoryName?.toLowerCase().includes(keyword));
+};
 
 export default function CategoriesSection() {
-  const freshCategories = [
-    { icon: '🥬', label: 'Rau Xanh', isFresh: true },
-    { icon: '🍞', label: 'Bánh Mỳ', isFresh: true },
-    { icon: '🍅', label: 'Nông Sản', isFresh: true },
-  ];
+  const navigate = useNavigate();
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const dryCategories = [
-    { icon: '🌾', label: 'Thực Phẩm Khô', isFresh: false },
-    { icon: '🧀', label: 'Sản phẩm từ sữa', isFresh: false },
-  ];
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      setLoading(true);
+      const response = await productService.getCategories();
+      console.log('Categories API Response:', response);
+      
+      // API returns: [...] directly (array of categories)
+      // Axios wraps it as: response.data = [...]
+      const categoryList = response.data || [];
+      console.log('categoryList:', categoryList);
+      console.log('categoryList.length:', categoryList.length);
+
+      if (Array.isArray(categoryList) && categoryList.length > 0) {
+        setCategories(categoryList);
+        setError(null);
+        console.log('✅ Categories loaded:', categoryList.length);
+      } else {
+        console.log('❌ No categories found or empty');
+        setError('Không tìm thấy danh mục sản phẩm');
+        setCategories([]);
+      }
+    } catch (err) {
+      console.error('Error fetching categories:', err);
+      setError('Lỗi khi tải danh mục sản phẩm');
+      setCategories([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCategoryClick = (categoryName) => {
+    navigate(`/products?categories=${encodeURIComponent(categoryName)}`);
+  };
 
   return (
     <Box sx={{ width: '100%', px: 3, py: '64px' }}>
@@ -31,17 +72,41 @@ export default function CategoriesSection() {
           Có thể bạn sẽ thích
         </Typography>
 
+        {/* Loading State */}
+        {loading && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+            <CircularProgress />
+          </Box>
+        )}
+
+        {/* Error State */}
+        {error && !loading && (
+          <Typography sx={{ color: '#d32f2f', textAlign: 'center', py: 4 }}>
+            {error}
+          </Typography>
+        )}
+
         {/* Categories Grid */}
-        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 3 }}>
-          {[...freshCategories, ...dryCategories].map((cat, idx) => (
-            <CategoryCard
-              key={`${cat.label}-${idx}`}
-              icon={cat.icon}
-              label={cat.label}
-              isFresh={cat.isFresh}
-            />
-          ))}
-        </Box>
+        {!loading && categories.length > 0 && (
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 3 }}>
+            {categories.map((category) => (
+              <CategoryCard
+                key={`${category.id}-${category.name}`}
+                icon={category.icon || '📦'}
+                label={category.name}
+                isFresh={isFreshCategory(category.name)}
+                onClick={() => handleCategoryClick(category.name)}
+              />
+            ))}
+          </Box>
+        )}
+
+        {/* Empty State */}
+        {!loading && categories.length === 0 && !error && (
+          <Typography sx={{ color: '#666', textAlign: 'center', py: 4 }}>
+            Chưa có danh mục sản phẩm nào
+          </Typography>
+        )}
       </Container>
     </Box>
   );

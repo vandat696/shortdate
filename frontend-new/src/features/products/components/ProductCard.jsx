@@ -1,4 +1,4 @@
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, Rating } from '@mui/material';
 import StoreIcon from '@mui/icons-material/Store';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
@@ -120,24 +120,6 @@ export default function ProductCard({ product }) {
           minHeight: 0,
         }}
       >
-        {/* Category */}
-        <Typography
-          sx={{
-            fontFamily: '"Inter",system-ui,sans-serif',
-            fontWeight: 600,
-            fontSize: '9px',
-            lineHeight: '12px',
-            letterSpacing: '0.5px',
-            textTransform: 'uppercase',
-            color: '#964900',
-            textOverflow: 'ellipsis',
-            overflow: 'hidden',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {product.category}
-        </Typography>
-
         {/* Product Name */}
         <Typography
           sx={{
@@ -156,6 +138,34 @@ export default function ProductCard({ product }) {
         >
           {product.name}
         </Typography>
+
+        {/* Star Rating */}
+        {product.average_rating && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', minHeight: '16px' }}>
+            <Rating
+              value={Number(product.average_rating) || 0}
+              readOnly
+              size="small"
+              sx={{ 
+                color: '#ffc107',
+                '& .MuiRating-icon': {
+                  fontSize: '14px',
+                }
+              }}
+            />
+            <Typography
+              sx={{
+                fontFamily: '"Inter",system-ui,sans-serif',
+                fontWeight: 600,
+                fontSize: '9px',
+                lineHeight: '12px',
+                color: '#666666',
+              }}
+            >
+              ({product.rating_count || 0})
+            </Typography>
+          </Box>
+        )}
 
         {/* Supplier & Distance */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', minHeight: '16px', overflow: 'hidden' }}>
@@ -274,5 +284,7 @@ ProductCard.propTypes = {
     supplier_name: PropTypes.string,
     supplier_latitude: PropTypes.number,
     supplier_longitude: PropTypes.number,
+    average_rating: PropTypes.number,
+    rating_count: PropTypes.number,
   }).isRequired,
 };

@@ -7,7 +7,6 @@ export default class Product {
       supplier_id,
       name,
       description,
-      category,
       product_type, // 'dry_product' hoặc 'fresh_product'
       original_price,
       current_price,
@@ -21,11 +20,11 @@ export default class Product {
 
     const query = `
       INSERT INTO products (
-        supplier_id, name, description, category, product_type,
+        supplier_id, name, description, product_type,
         original_price, current_price, min_floor_price,
         stock_quantity, min_stock_threshold, expiry_date,
         image_url, auto_pricing_enabled
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
       RETURNING *;
     `;
 
@@ -33,7 +32,6 @@ export default class Product {
       supplier_id,
       name,
       description,
-      category,
       product_type,
       original_price,
       current_price,
@@ -49,7 +47,7 @@ export default class Product {
     return result.rows[0];
   }
 
-  // Lấy sản phẩm theo ID
+  // Lấy sản phẩm theo ID (với categories)
   static async findById(id) {
     const query = `
       SELECT 
@@ -57,10 +55,16 @@ export default class Product {
         (SELECT image_url FROM product_images WHERE product_id = p.id ORDER BY position ASC LIMIT 1) as thumbnail_url,
         sd.company_name as supplier_name,
         sd.latitude as supplier_latitude,
-        sd.longitude as supplier_longitude
+        sd.longitude as supplier_longitude,
+        COALESCE(json_agg(
+          json_build_object('id', c.id, 'name', c.name, 'icon', c.icon, 'description', c.description)
+        ) FILTER (WHERE c.id IS NOT NULL), '[]'::json) as categories
       FROM products p
       LEFT JOIN supplier_details sd ON p.supplier_id = sd.user_id
+      LEFT JOIN product_categories pc ON p.id = pc.product_id
+      LEFT JOIN categories c ON pc.category_id = c.id AND c.is_active = true
       WHERE p.id = $1 AND p.is_active = true
+      GROUP BY p.id, sd.id
     `;
     const result = await pool.query(query, [id]);
     return result.rows[0] || null;
@@ -94,9 +98,14 @@ export default class Product {
         (SELECT image_url FROM product_images WHERE product_id = p.id ORDER BY position ASC LIMIT 1) as thumbnail_url,
         sd.company_name as supplier_name,
         sd.latitude as supplier_latitude,
-        sd.longitude as supplier_longitude
+        sd.longitude as supplier_longitude,
+        COALESCE(json_agg(
+          json_build_object('id', c.id, 'name', c.name, 'icon', c.icon, 'display_order', c.display_order)
+        ) FILTER (WHERE c.id IS NOT NULL), '[]'::json) as categories
       FROM products p
       LEFT JOIN supplier_details sd ON p.supplier_id = sd.user_id
+      LEFT JOIN product_categories pc ON p.id = pc.product_id
+      LEFT JOIN categories c ON pc.category_id = c.id AND c.is_active = true
       WHERE p.is_active = true
     `;
     const params = [];
@@ -107,10 +116,10 @@ export default class Product {
       query += ` AND p.product_type = $${params.length}`;
     }
 
-    // Filter theo danh mục
+    // Filter theo danh mục (category name)
     if (filters.category) {
       params.push(filters.category);
-      query += ` AND p.category = $${params.length}`;
+      query += ` AND c.name = $${params.length}`;
     }
 
     // Filter theo khoảng giá
@@ -141,8 +150,11 @@ export default class Product {
       query += ` AND p.discount_percentage >= $${params.length}`;
     }
 
+    // GROUP BY để tránh duplicate khi join với categories
+    query += ` GROUP BY p.id, sd.id`;
+
     // Sắp xếp
-    const sort = filters.sort || 'created_at';
+    const sort = filters.sort || 'p.created_at';
     const order = filters.order || 'DESC';
     query += ` ORDER BY ${sort} ${order}`;
 
@@ -159,7 +171,7 @@ export default class Product {
   // Cập nhật sản phẩm
   static async update(id, updateData) {
     const allowedFields = [
-      'name', 'description', 'category', 'product_type',
+      'name', 'description', 'product_type',
       'original_price', 'current_price', 'min_floor_price',
       'discount_percentage', 'stock_quantity', 'min_stock_threshold',
       'expiry_date', 'image_url', 'auto_pricing_enabled'
@@ -217,11 +229,52 @@ export default class Product {
     return result.rows[0] || null;
   }
 
-  // Lấy danh mục sản phẩm
+  // Lấy tất cả categories (từ bảng categories)
   static async getCategories() {
-    const query = 'SELECT DISTINCT category FROM products WHERE is_active = true ORDER BY category';
+    const query = `
+      SELECT id, name, description, icon, display_order 
+      FROM categories 
+      WHERE is_active = true 
+      ORDER BY display_order ASC, name ASC
+    `;
     const result = await pool.query(query);
-    return result.rows.map(row => row.category);
+    return result.rows;
+  }
+
+  // Lấy categories của một product
+  static async getProductCategories(product_id) {
+    const query = `
+      SELECT c.id, c.name, c.description, c.icon
+      FROM categories c
+      JOIN product_categories pc ON c.id = pc.category_id
+      WHERE pc.product_id = $1 AND c.is_active = true
+      ORDER BY c.name ASC
+    `;
+    const result = await pool.query(query, [product_id]);
+    return result.rows;
+  }
+
+  // Thêm category cho product
+  static async addProductCategory(product_id, category_id) {
+    const query = `
+      INSERT INTO product_categories (product_id, category_id)
+      VALUES ($1, $2)
+      ON CONFLICT (product_id, category_id) DO NOTHING
+      RETURNING *;
+    `;
+    const result = await pool.query(query, [product_id, category_id]);
+    return result.rows[0] || null;
+  }
+
+  // Xóa category từ product
+  static async removeProductCategory(product_id, category_id) {
+    const query = `
+      DELETE FROM product_categories
+      WHERE product_id = $1 AND category_id = $2
+      RETURNING *;
+    `;
+    const result = await pool.query(query, [product_id, category_id]);
+    return result.rows[0] || null;
   }
 
   // Lấy các sản phẩm sắp hết hạn (cho cảnh báo)

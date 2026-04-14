@@ -27,3 +27,4 @@ const authenticateOptional = (req, res, next) => {
 
 export const authenticateOptionalToken = authenticateOptional;
 export const authenticateTokenOptional = authenticateOptional;
+export default authenticateOptional;

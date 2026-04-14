@@ -1,4 +1,5 @@
 import Product from '../models/Product.js';
+import Category from '../models/Category.js';
 
 // Validation helpers
 const validateRequiredFields = (data, requiredFields) => {
@@ -73,6 +74,7 @@ export const createProduct = async (req, res) => {
       name,
       description,
       category,
+      categoryIds,
       product_type, // 'dry_product' hoặc 'fresh_product'
       original_price,
       current_price,
@@ -84,9 +86,9 @@ export const createProduct = async (req, res) => {
       auto_pricing_enabled = true
     } = req.body;
 
-    // Validate required fields
+    // Validate required fields (categoryIds hoặc category)
     const requiredFields = [
-      'name', 'category', 'product_type',
+      'name', 'product_type',
       'original_price', 'current_price',
       'stock_quantity', 'expiry_date'
     ];
@@ -96,6 +98,13 @@ export const createProduct = async (req, res) => {
       return res.status(400).json({
         error: 'Các trường bắt buộc còn thiếu',
         missing_fields: missing
+      });
+    }
+
+    // Kiểm tra categoryIds
+    if (!categoryIds || !Array.isArray(categoryIds) || categoryIds.length === 0) {
+      return res.status(400).json({
+        error: 'Vui lòng chọn ít nhất một danh mục'
       });
     }
 
@@ -127,12 +136,11 @@ export const createProduct = async (req, res) => {
       ((original_price - current_price) / original_price) * 100
     );
 
-    // Tạo sản phẩm
+    // Tạo sản phẩm (category sẽ được linked qua product_categories)
     const newProduct = await Product.create({
       supplier_id,
       name,
       description,
-      category,
       product_type,
       original_price: parseFloat(original_price),
       current_price: parseFloat(current_price),
@@ -149,11 +157,31 @@ export const createProduct = async (req, res) => {
       discount_percentage: discountPercentage
     });
 
+    // Liên kết categories (với validation)
+    try {
+      await Category.updateProductCategories(newProduct.id, categoryIds);
+    } catch (categoryErr) {
+      // Nếu category linking fail, xóa product vừa tạo
+      await Product.delete(newProduct.id);
+      return res.status(400).json({
+        error: 'Danh mục sản phẩm không hợp lệ',
+        message: categoryErr.message,
+        details: 'Vui lòng chọn các danh mục hợp lệ từ hệ thống'
+      });
+    }
+
+    // Lấy categories vừa thêm
+    const productCategories = await Category.getProductCategories(newProduct.id);
+
     res.status(201).json({
-      message: 'Sản phẩm được thêm thành công',
-      product: {
-        ...newProduct,
-        discount_percentage: discountPercentage
+      data: {
+        success: true,
+        message: 'Sản phẩm được thêm thành công',
+        product: {
+          ...newProduct,
+          discount_percentage: discountPercentage,
+          categories: productCategories
+        }
       }
     });
   } catch (err) {
@@ -273,10 +301,11 @@ export const updateProduct = async (req, res) => {
     }
 
     const updateData = {};
+    const { categoryIds } = req.body;
 
     // Cập nhật các trường được phép
     const allowedFields = [
-      'name', 'description', 'category', 'product_type',
+      'name', 'description', 'product_type',
       'original_price', 'current_price', 'min_floor_price',
       'stock_quantity', 'min_stock_threshold', 'expiry_date',
       'image_url', 'auto_pricing_enabled'
@@ -319,9 +348,30 @@ export const updateProduct = async (req, res) => {
       await Product.update(id, { discount_percentage: discountPercentage });
     }
 
+    // Cập nhật categories nếu được cung cấp
+    let productCategories = [];
+    if (categoryIds && Array.isArray(categoryIds) && categoryIds.length > 0) {
+      try {
+        await Category.updateProductCategories(id, categoryIds);
+        productCategories = await Category.getProductCategories(id);
+      } catch (categoryErr) {
+        return res.status(400).json({
+          error: 'Danh mục sản phẩm không hợp lệ',
+          message: categoryErr.message,
+          details: 'Vui lòng chọn các danh mục hợp lệ từ hệ thống'
+        });
+      }
+    }
+
     res.status(200).json({
-      message: 'Cập nhật sản phẩm thành công',
-      product: updatedProduct
+      data: {
+        success: true,
+        message: 'Cập nhật sản phẩm thành công',
+        product: {
+          ...updatedProduct,
+          categories: productCategories
+        }
+      }
     });
   } catch (err) {
     console.error('Update product error:', err.message);
@@ -398,22 +448,6 @@ export const deleteProduct = async (req, res) => {
   }
 };
 
-// LẤY DANH SÁCH DANH MỤC
-export const getCategories = async (req, res) => {
-  try {
-    const categories = await Product.getCategories();
-
-    res.status(200).json({
-      categories
-    });
-  } catch (err) {
-    console.error('Get categories error:', err.message);
-    res.status(500).json({
-      error: 'Lấy danh sách danh mục thất bại',
-      message: err.message
-    });
-  }
-};
 
 // LẤY SẢN PHẨM SẮP HẾT HẠN (cảnh báo)
 export const getExpiringProducts = async (req, res) => {

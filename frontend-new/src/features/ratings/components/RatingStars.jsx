@@ -25,8 +25,8 @@ const RatingStars = ({ rating = 0, count = 0, size = 'medium', interactive = fal
         }}
       />
       {rating > 0 && (
-        <Box display="flex" alignItems="center" gap={0.5}>
-          <Typography variant="body2" fontWeight={600} color="#333">
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <Typography variant="body2" sx={{ fontWeight: 600 }} color="#333">
             {rating.toFixed(1)}
           </Typography>
           {count > 0 && (

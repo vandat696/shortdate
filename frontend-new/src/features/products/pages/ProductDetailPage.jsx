@@ -1,4 +1,7 @@
 import { Box, Container, Grid, Typography, CircularProgress, Rating } from '@mui/material';
+import TrendingDownIcon from '@mui/icons-material/TrendingDown';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
@@ -71,9 +74,13 @@ export default function ProductDetailPage() {
         setError(null);
         
         const response = await productService.getById(productId);
-        const data = response.data?.product || response.data;
+        console.log('📡 Full response:', response);
         
+        const data = response.data?.product || response.data;
         console.log('📦 Product data received:', data);
+        console.log('🏷️ Categories:', data.categories);
+        console.log('🏷️ Categories type:', typeof data.categories);
+        console.log('🏷️ Is array?', Array.isArray(data.categories));
         
         // Fetch all product images
         let allImages = [];
@@ -91,21 +98,27 @@ export default function ProductDetailPage() {
           setUserZip(storedZip);
         }
         
-        // Fetch related products (same category)
+        // Fetch related products (same category - use first category)
         try {
-          const relatedResponse = await axios.get(
-            `http://localhost:5000/api/products/all?category=${data.category}&limit=8`,
-            {
-              headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
+          const firstCategory = data.categories && data.categories.length > 0 
+            ? data.categories[0].name 
+            : data.category;
+            
+          if (firstCategory) {
+            const relatedResponse = await axios.get(
+              `http://localhost:5000/api/products/all?category=${firstCategory}&limit=8`,
+              {
+                headers: {
+                  'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
               }
-            }
-          );
-          const products = (relatedResponse.data?.products || [])
-            .filter(p => p.id !== productId)
-            .slice(0, 4);
-          setRelatedProducts(products);
-          console.log('🔗 Related products:', products);
+            );
+            const products = (relatedResponse.data?.products || [])
+              .filter(p => p.id !== productId)
+              .slice(0, 4);
+            setRelatedProducts(products);
+            console.log('🔗 Related products:', products);
+          }
         } catch (err) {
           console.warn('No related products found:', err);
         }
@@ -117,6 +130,7 @@ export default function ProductDetailPage() {
           id: data.id,
           name: data.name,
           category: data.category,
+          categories: data.categories || [],
           description: data.description,
           current_price: data.current_price,
           original_price: data.original_price,
@@ -224,7 +238,9 @@ export default function ProductDetailPage() {
                 color: '#707A6C',
               }}
             >
-              MARKETPLACE / {product.category?.toUpperCase()} / {product.name}
+              MARKETPLACE / {product.categories && product.categories.length > 0 
+                ? product.categories.map(cat => cat.name.toUpperCase()).join(' / ')
+                : 'PRODUCTS'} / {product.name}
             </Typography>
           </Box>
 
@@ -330,12 +346,79 @@ export default function ProductDetailPage() {
                       color: '#40493D',
                     }}
                   >
-                    Local Supplier • {product.category || 'Products'}
+                    Local Supplier
                   </Typography>
+
+                  {/* Categories */}
+                  {product.categories && product.categories.length > 0 && (
+                    <Box sx={{ 
+                      display: 'flex', 
+                      flexWrap: 'wrap',
+                      gap: '8px',
+                      mt: 2, 
+                      width: '550px',
+                      alignItems: 'center',
+                    }}>
+                      {product.categories.map((category) => (
+                        <Box
+                          key={category.id}
+                          sx={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            px: 1.5,
+                            py: 0.5,
+                            backgroundColor: '#F1F5EB',
+                            borderRadius: '9999px',
+                            border: '1px solid #E8E8E8',
+                            transition: 'all 0.2s',
+                            flexShrink: 0,
+                            '&:hover': { 
+                              backgroundColor: '#EBEFE5',
+                              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
+                            },
+                          }}
+                        >
+                          <Typography
+                            sx={{
+                              fontFamily: '"Inter",system-ui,sans-serif',
+                              fontWeight: 600,
+                              fontSize: '12px',
+                              lineHeight: '16px',
+                              color: '#964900',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {category.icon && (
+                              <Box 
+                                component="span" 
+                                sx={{ 
+                                  marginRight: '6px', 
+                                  display: 'inline-flex', 
+                                  flexShrink: 0,
+                                }}
+                              >
+                                {category.icon}
+                              </Box>
+                            )}
+                            {category.name}
+                          </Typography>
+                        </Box>
+                      ))}
+                    </Box>
+                  )}
                 </Box>
 
                 {/* Pricing Box */}
-                <Box sx={{ p: 3, backgroundColor: '#FFFFFF', borderRadius: '24px' }}>
+                <Box sx={{ 
+                  p: 3, 
+                  backgroundColor: '#FFFFFF', 
+                  borderRadius: '24px',
+                  height: '240px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.03)',
+                }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mb: 2 }}>
                     {/* Price Display */}
                     <Box>
@@ -358,8 +441,8 @@ export default function ProductDetailPage() {
                           sx={{
                             fontFamily: '"Myriad Condensed",system-ui,sans-serif',
                             fontWeight: 800,
-                            fontSize: '48px',
-                            lineHeight: '48px',
+                            fontSize: '40px',
+                            lineHeight: '40px',
                             letterSpacing: '-2.4px',
                             color: '#181D17',
                           }}
@@ -370,7 +453,7 @@ export default function ProductDetailPage() {
                           sx={{
                             fontFamily: '"Inter",system-ui,sans-serif',
                             fontWeight: 400,
-                            fontSize: '20px',
+                            fontSize: '18px',
                             lineHeight: '28px',
                             textDecoration: 'line-through',
                             color: '#707A6C',
@@ -409,14 +492,14 @@ export default function ProductDetailPage() {
                   {/* Auto-Pricing Info */}
                   <Box
                     sx={{
-                      p: 3,
+                      p: 2,
                       backgroundColor: 'rgba(46, 125, 50, 0.1)',
                       border: '1px solid rgba(13, 99, 27, 0.05)',
                       borderRadius: '16px',
                     }}
                   >
                     <Box sx={{ display: 'flex', gap: 2 }}>
-                      <Box sx={{ width: '16.67px', height: '10px', backgroundColor: '#0D631B', flexShrink: 0 }} />
+                      <TrendingDownIcon sx={{ color: '#0D631B', fontSize: '20px', flexShrink: 0, mt: 0.25 }} />
                       <Box>
                         <Typography
                           sx={{
@@ -427,7 +510,7 @@ export default function ProductDetailPage() {
                             color: '#0D631B',
                           }}
                         >
-                          Auto-Pricing Active
+                          Auto-Pricing đang chạy!
                         </Typography>
                         <Typography
                           sx={{
@@ -439,7 +522,7 @@ export default function ProductDetailPage() {
                             mt: 0.5,
                           }}
                         >
-                          Price drops every 6 hours as the HSD approaches to maximize sustainability.
+                          Auto Pricing sẽ giảm giá sau mỗi khoảng thời gian nhất định!
                         </Typography>
                       </Box>
                     </Box>
@@ -517,7 +600,7 @@ export default function ProductDetailPage() {
                         }}
                       >
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5, mb: 1 }}>
-                          <Box sx={{ width: '11px', height: '10.5px', backgroundColor: '#0D631B' }} />
+                          <CheckCircleIcon sx={{ color: '#0D631B', fontSize: '16px', flexShrink: 0 }} />
                           <Typography
                             sx={{
                               fontFamily: '"Inter",system-ui,sans-serif',
@@ -769,7 +852,10 @@ export default function ProductDetailPage() {
                             position: 'absolute',
                             top: '12px',
                             right: '12px',
-                            padding: '4px 12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            padding: '4px 8px',
                             backgroundColor: 'rgba(252, 130, 12, 0.9)',
                             borderRadius: '9999px',
                             fontSize: '12px',
@@ -777,6 +863,7 @@ export default function ProductDetailPage() {
                             color: '#5E2C00',
                           }}
                         >
+                          <LocalOfferIcon sx={{ fontSize: '14px', flexShrink: 0 }} />
                           -{Math.round(((relatedProduct.original_price - relatedProduct.current_price) / relatedProduct.original_price) * 100)}%
                         </Box>
                       </Box>

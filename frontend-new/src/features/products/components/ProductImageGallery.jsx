@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { getImageUrl } from '../../../services/api';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 
 export default function ProductImageGallery({ mainImage, thumbnails, allImages = [], discountPercentage = 38 }) {
   // Determine which image URL to use as main display
@@ -115,7 +116,7 @@ export default function ProductImageGallery({ mainImage, thumbnails, allImages =
             zIndex: 10,
           }}
         >
-          <Box sx={{ width: '10px', height: '12px', backgroundColor: '#5E2C00' }} />
+          <LocalOfferIcon sx={{ color: '#5E2C00', fontSize: '16px', flexShrink: 0 }} />
           <Box
             sx={{
               fontFamily: '"Myriad Condensed","Montserrat","Inter",system-ui,sans-serif',

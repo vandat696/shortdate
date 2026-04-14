@@ -35,13 +35,24 @@ CREATE TABLE IF NOT EXISTS supplier_details (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Categories Table
+CREATE TABLE IF NOT EXISTS categories (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL UNIQUE,
+  description TEXT,
+  icon VARCHAR(500),
+  display_order INT DEFAULT 0,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Products Table
 CREATE TABLE IF NOT EXISTS products (
   id SERIAL PRIMARY KEY,
   supplier_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   name VARCHAR(255) NOT NULL,
   description TEXT,
-  category VARCHAR(100) NOT NULL,
   product_type VARCHAR(50) NOT NULL CHECK (product_type IN ('dry_product', 'fresh_product')),
   original_price DECIMAL(10, 2) NOT NULL,
   current_price DECIMAL(10, 2) NOT NULL,
@@ -55,6 +66,15 @@ CREATE TABLE IF NOT EXISTS products (
   is_active BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Product Categories Junction Table (Many-to-Many)
+CREATE TABLE IF NOT EXISTS product_categories (
+  id SERIAL PRIMARY KEY,
+  product_id INT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  category_id INT NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(product_id, category_id)
 );
 
 -- Price History Table
@@ -133,6 +153,9 @@ CREATE INDEX idx_users_user_type ON users(user_type);
 CREATE INDEX idx_products_supplier_id ON products(supplier_id);
 CREATE INDEX idx_products_product_type ON products(product_type);
 CREATE INDEX idx_products_expiry_date ON products(expiry_date);
+CREATE INDEX idx_product_categories_product_id ON product_categories(product_id);
+CREATE INDEX idx_product_categories_category_id ON product_categories(category_id);
+CREATE INDEX idx_categories_is_active ON categories(is_active);
 CREATE INDEX idx_orders_buyer_id ON orders(buyer_id);
 CREATE INDEX idx_orders_supplier_id ON orders(supplier_id);
 CREATE INDEX idx_orders_status ON orders(status);

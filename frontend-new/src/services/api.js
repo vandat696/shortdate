@@ -55,6 +55,7 @@ export const authService = {
 export const productService = {
   getAll: (params = {}) => api.get('/products/all', { params }),
   getById: (id) => api.get(`/products/${id}`),
+  getCategories: () => api.get('/products/categories'),
 };
 
 export const cartService = {

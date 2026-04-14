@@ -13,7 +13,7 @@ const FALLBACK_PRODUCTS = [
     current_price: 25000,
     original_price: 35000,
     stock_quantity: 15,
-    category: 'vegetables',
+    categories: [{ id: 1, name: 'Rau quả tươi', icon: '🥬' }],
     expiry_date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
   },
   {
@@ -23,7 +23,7 @@ const FALLBACK_PRODUCTS = [
     current_price: 120000,
     original_price: 150000,
     stock_quantity: 8,
-    category: 'grains',
+    categories: [{ id: 2, name: 'Thực phẩm khô', icon: '🌾' }],
     expiry_date: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000).toISOString(),
   },
 ];
@@ -68,14 +68,28 @@ export default function AllProductsPage() {
     }
   }, [searchParams]);
 
+  // Fetch products whenever filters change
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [filters]);
 
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const response = await productService.getAll();
+      
+      // Build query params from filters for API
+      const apiParams = {};
+      if (filters.categories.length > 0) {
+        apiParams.category = filters.categories[0]; // API filters by single category via query param
+      }
+      if (filters.priceRange[0] > 0) {
+        apiParams.min_price = filters.priceRange[0];
+      }
+      if (filters.priceRange[1] < 1000000) {
+        apiParams.max_price = filters.priceRange[1];
+      }
+
+      const response = await productService.getAll(apiParams);
       const productList = response.data?.products || response.data || [];
 
       if (Array.isArray(productList) && productList.length > 0) {
@@ -86,6 +100,7 @@ export default function AllProductsPage() {
         setError(null);
       }
     } catch (err) {
+      console.error('Fetch products error:', err);
       setProducts(FALLBACK_PRODUCTS);
       setError('API không khả dụng, hiển thị sản phẩm mẫu');
     } finally {
@@ -96,9 +111,13 @@ export default function AllProductsPage() {
   // Filter products based on selected filters
   const getFilteredProducts = () => {
     return products.filter(product => {
-      // Filter by category
+      // Filter by category - check if product has any of the selected categories
       if (filters.categories.length > 0) {
-        if (!filters.categories.includes(product.category)) return false;
+        const productCategoryNames = (product.categories || []).map(cat => cat.name || cat);
+        const hasMatchingCategory = filters.categories.some(selectedCategory =>
+          productCategoryNames.includes(selectedCategory)
+        );
+        if (!hasMatchingCategory) return false;
       }
 
       // Filter by price range

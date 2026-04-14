@@ -17,7 +17,7 @@ const FALLBACK_PRODUCTS = [
     current_price: 25000,
     original_price: 35000,
     stock_quantity: 15,
-    category: 'vegetables',
+    categories: [{ id: 1, name: 'Rau quả tươi', icon: '🥬' }],
     expiry_date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
   },
   {
@@ -27,7 +27,7 @@ const FALLBACK_PRODUCTS = [
     current_price: 120000,
     original_price: 150000,
     stock_quantity: 8,
-    category: 'grains',
+    categories: [{ id: 2, name: 'Thực phẩm khô', icon: '🌾' }],
     expiry_date: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000).toISOString(),
   },
 ];
@@ -92,9 +92,13 @@ export default function HomePage() {
   // Filter products based on selected filters
   const getFilteredProducts = () => {
     return products.filter(product => {
-      // Filter by category
+      // Filter by category - check if product has any of the selected categories
       if (filters.categories.length > 0) {
-        if (!filters.categories.includes(product.category)) return false;
+        const productCategoryNames = (product.categories || []).map(cat => cat.name || cat);
+        const hasMatchingCategory = filters.categories.some(selectedCategory =>
+          productCategoryNames.includes(selectedCategory)
+        );
+        if (!hasMatchingCategory) return false;
       }
 
       // Filter by price range
@@ -190,7 +194,7 @@ export default function HomePage() {
 
                     <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
                       <Button
-                        onClick={() => navigate('/search?hsd=today&discount=50-80&sort=nearest_expiry')}
+                        onClick={() => navigate('/products')}
                         variant="contained"
                         sx={{ height: 57, px: 4, borderRadius: 3, bgcolor: '#0D631B', color: '#fff', fontSize: 18, fontWeight: 700, '&:hover': { bgcolor: '#0B5717' } }}
                       >

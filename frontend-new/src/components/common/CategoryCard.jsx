@@ -1,13 +1,14 @@
 import { Box, Typography } from '@mui/material';
 import PropTypes from 'prop-types';
 
-export default function CategoryCard({ icon, label, isFresh = true }) {
+export default function CategoryCard({ icon, label, isFresh = true, onClick }) {
   const isFreshCategory = isFresh;
   const bgColor = isFreshCategory ? '#E5EADF' : '#F1F5EB';
   const iconBgColor = isFreshCategory ? '#0D631B' : '#964900';
 
   return (
     <Box
+      onClick={onClick}
       sx={{
         display: 'flex',
         flexDirection: 'column',
@@ -65,4 +66,5 @@ CategoryCard.propTypes = {
   icon: PropTypes.string.isRequired,
   label: PropTypes.string.isRequired,
   isFresh: PropTypes.bool,
+  onClick: PropTypes.func,
 };

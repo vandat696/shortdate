@@ -20,6 +20,11 @@ import {
   Paper,
   Modal,
   Grid,
+  Chip,
+  Checkbox,
+  FormGroup,
+  FormControlLabel,
+  Rating,
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -49,12 +54,16 @@ export default function SupplierInventory() {
   const [message, setMessage] = useState('');
   const [openProductDialog, setOpenProductDialog] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
+  const [categorySearchTerm, setCategorySearchTerm] = useState('');
   const [formData, setFormData] = useState({
     name: '',
-    category: '',
+    categoryIds: [],
     stock_quantity: '',
     current_price: '',
     original_price: '',
+    min_floor_price: '',
     expiry_date: '',
     description: '',
     image_url: '',
@@ -69,7 +78,21 @@ export default function SupplierInventory() {
 
   useEffect(() => {
     fetchProducts();
+    fetchCategories();
   }, []);
+
+  const fetchCategories = async () => {
+    try {
+      setCategoriesLoading(true);
+      const response = await api.get('/categories');
+      setCategories(response.data || []);
+    } catch (err) {
+      console.error('Error fetching categories:', err);
+      setMessage({ type: 'error', text: 'Lỗi khi tải danh mục' });
+    } finally {
+      setCategoriesLoading(false);
+    }
+  };
 
   const fetchProducts = async () => {
     try {
@@ -92,19 +115,22 @@ export default function SupplierInventory() {
     }
   };
 
-  const filteredProducts = products.filter((product) =>
-    (product.name?.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (product.category?.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filteredProducts = products.filter((product) => {
+    const matchesSearchTerm = 
+      (product.name?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (product.category?.toLowerCase().includes(searchTerm.toLowerCase()));
+    return matchesSearchTerm;
+  });
 
   const handleOpenAddDialog = () => {
     setEditingProduct(null);
     setFormData({
       name: '',
-      category: '',
+      categoryIds: [],
       stock_quantity: '',
       current_price: '',
       original_price: '',
+      min_floor_price: '',
       expiry_date: '',
       description: '',
       image_url: '',
@@ -114,14 +140,19 @@ export default function SupplierInventory() {
     setOpenProductDialog(true);
   };
 
-  const handleOpenEditDialog = (product) => {
+  const handleOpenEditDialog = async (product) => {
     setEditingProduct(product);
+    
+    // Get product's categories from product object
+    const productCategoryIds = product.categories?.map(cat => cat.id) || [];
+    
     setFormData({
       name: product.name || '',
-      category: product.category || '',
+      categoryIds: productCategoryIds,
       stock_quantity: product.stock_quantity || '',
       current_price: product.current_price || '',
       original_price: product.original_price || '',
+      min_floor_price: product.min_floor_price || '',
       expiry_date: product.expiry_date ? product.expiry_date.split('T')[0] : '',
       description: product.description || '',
       image_url: product.image_url || '',
@@ -242,18 +273,19 @@ export default function SupplierInventory() {
 
   const handleSaveProduct = async () => {
     try {
-      if (!formData.name || !formData.category || !formData.stock_quantity || !formData.current_price) {
+      if (!formData.name || !formData.categoryIds || formData.categoryIds.length === 0 || !formData.stock_quantity || !formData.current_price) {
         setMessage({ type: 'error', text: 'Vui lòng điền đầy đủ thông tin' });
         return;
       }
 
       const data = {
         name: formData.name,
-        category: formData.category,
+        categoryIds: formData.categoryIds,
         product_type: 'dry_product', // Mặc định cho sản phẩm khô
         stock_quantity: parseInt(formData.stock_quantity),
         current_price: parseFloat(formData.current_price),
         original_price: formData.original_price ? parseFloat(formData.original_price) : parseFloat(formData.current_price),
+        min_floor_price: formData.min_floor_price ? parseFloat(formData.min_floor_price) : 0,
         expiry_date: formData.expiry_date,
         description: formData.description,
       };
@@ -265,7 +297,7 @@ export default function SupplierInventory() {
         setMessage({ type: 'success', text: 'Cập nhật sản phẩm thành công' });
       } else {
         const response = await api.post('/products', data);
-        productId = response.data.product?.id;
+        productId = response.data.data.product?.id;
         setMessage({ type: 'success', text: 'Thêm sản phẩm thành công' });
       }
 
@@ -488,24 +520,40 @@ export default function SupplierInventory() {
                   <Typography variant="caption" sx={{ color: '#78716C', display: 'block', mb: 1 }}>
                     {product.category || 'N/A'}
                   </Typography>
-                  <Box sx={{ display: 'flex', gap: 2, mb: 1, flexWrap: 'wrap' }}>
+                  
+                  {/* Đánh giá sản phẩm */}
+                  {product.average_rating && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                      <Rating
+                        value={Number(product.average_rating) || 0}
+                        readOnly
+                        size="small"
+                        sx={{ color: '#ffc107' }}
+                      />
+                      <Typography variant="caption" sx={{ color: '#666', fontWeight: 600 }}>
+                        ({product.rating_count || 0})
+                      </Typography>
+                    </Box>
+                  )}
+                  
+                  <Box sx={{ display: 'flex', gap: 2, mb: 1, flexWrap: 'wrap', fontSize: '13px' }}>
                     <Box>
-                      <Typography variant="caption" sx={{ color: '#999' }}>Tồn kho</Typography>
-                      <Typography sx={{ fontWeight: 700, color: '#181D17' }}>  
+                      <Typography variant="caption" sx={{ color: '#999', fontSize: '11px' }}>Tồn kho</Typography>
+                      <Typography sx={{ fontWeight: 700, color: '#181D17', fontSize: '13px' }}>
                         {product.stock_quantity || 0}
                       </Typography>
                     </Box>
                     <Box>
-                      <Typography variant="caption" sx={{ color: '#999' }}>Hạn SD</Typography>
-                      <Typography sx={{ fontWeight: 700, color: product.stock_quantity < 10 ? '#BA1A1A' : '#181D17' }}>
+                      <Typography variant="caption" sx={{ color: '#999', fontSize: '11px' }}>Hạn SD</Typography>
+                      <Typography sx={{ fontWeight: 700, color: product.stock_quantity < 10 ? '#BA1A1A' : '#181D17', fontSize: '13px' }}>
                         {product.expiry_date
                           ? new Date(product.expiry_date).toLocaleDateString('vi-VN')
                           : 'N/A'}
                       </Typography>
                     </Box>
                     <Box>
-                      <Typography variant="caption" sx={{ color: '#999' }}>Giá</Typography>
-                      <Typography sx={{ fontWeight: 700, color: '#2d5016' }}>
+                      <Typography variant="caption" sx={{ color: '#999', fontSize: '11px' }}>Giá</Typography>
+                      <Typography sx={{ fontWeight: 700, color: '#2d5016', fontSize: '13px' }}>
                         ₫{Math.round(Number(product.current_price)).toLocaleString('vi-VN')}
                       </Typography>
                     </Box>
@@ -638,14 +686,126 @@ export default function SupplierInventory() {
             fullWidth
             size="small"
           />
-          <TextField
-            label="Danh mục"
-            name="category"
-            value={formData.category}
-            onChange={handleFormChange}
-            fullWidth
-            size="small"
-          />
+          {/* Danh mục - Hybrid Mode (Search + Checkbox List) */}
+          <Box>
+            <Typography variant="body2" sx={{ fontWeight: 700, mb: 1, color: '#181D17' }}>
+              Danh mục (chọn một hoặc nhiều)*
+            </Typography>
+            
+            {/* Search Box */}
+            <TextField
+              placeholder="Tìm kiếm danh mục..."
+              size="small"
+              fullWidth
+              value={categorySearchTerm}
+              onChange={(e) => setCategorySearchTerm(e.target.value)}
+              sx={{ mb: 1.5 }}
+            />
+
+            {/* Checkbox List */}
+            <Paper
+              sx={{
+                maxHeight: '200px',
+                overflowY: 'auto',
+                p: 1.5,
+                backgroundColor: '#F9F8F6',
+                border: '1px solid #E8E8E8',
+                borderRadius: '8px',
+              }}
+            >
+              {categoriesLoading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+                  <CircularProgress size={24} />
+                </Box>
+              ) : (
+                <FormGroup>
+                  {categories
+                    .filter(cat =>
+                      cat.name.toLowerCase().includes(categorySearchTerm.toLowerCase())
+                    )
+                    .map((category) => (
+                      <FormControlLabel
+                        key={category.id}
+                        control={
+                          <Checkbox
+                            checked={formData.categoryIds.includes(category.id)}
+                            onChange={(e) => {
+                              setFormData((prev) => {
+                                if (e.target.checked) {
+                                  return {
+                                    ...prev,
+                                    categoryIds: [...prev.categoryIds, category.id],
+                                  };
+                                } else {
+                                  return {
+                                    ...prev,
+                                    categoryIds: prev.categoryIds.filter(
+                                      (id) => id !== category.id
+                                    ),
+                                  };
+                                }
+                              });
+                            }}
+                            sx={{
+                              color: '#964900',
+                              '&.Mui-checked': {
+                                color: '#964900',
+                              },
+                            }}
+                          />
+                        }
+                        label={category.name}
+                        sx={{
+                          mb: 0.5,
+                          '& .MuiFormControlLabel-label': {
+                            fontSize: '14px',
+                            color: '#40493D',
+                          },
+                        }}
+                      />
+                    ))}
+                </FormGroup>
+              )}
+            </Paper>
+
+            {/* Selected Tags Display */}
+            {formData.categoryIds.length > 0 && (
+              <Box sx={{ mt: 1.5, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                {categories
+                  .filter((cat) => formData.categoryIds.includes(cat.id))
+                  .map((cat) => (
+                    <Chip
+                      key={cat.id}
+                      label={cat.name}
+                      onDelete={() => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          categoryIds: prev.categoryIds.filter((id) => id !== cat.id),
+                        }));
+                      }}
+                      sx={{
+                        backgroundColor: '#964900',
+                        color: '#fff',
+                        '& .MuiChip-deleteIcon': {
+                          color: '#fff',
+                          '&:hover': { color: '#fff' },
+                        },
+                      }}
+                    />
+                  ))}
+              </Box>
+            )}
+
+            {formData.categoryIds.length === 0 && (
+              <Typography
+                variant="caption"
+                sx={{ display: 'block', mt: 1, color: '#d32f2f' }}
+              >
+                ⚠️ Vui lòng chọn ít nhất một danh mục
+              </Typography>
+            )}
+          </Box>
+
           <TextField
             label="Tồn kho (đơn vị)"
             name="stock_quantity"
@@ -674,6 +834,17 @@ export default function SupplierInventory() {
             fullWidth
             size="small"
             inputProps={{ step: '0.01' }}
+          />
+          <TextField
+            label="Giá sàn (tối thiểu)"
+            name="min_floor_price"
+            type="number"
+            value={formData.min_floor_price}
+            onChange={handleFormChange}
+            fullWidth
+            size="small"
+            inputProps={{ step: '0.01' }}
+            helperText="Giá không được bán thấp hơn mức này khi auto-pricing"
           />
           <TextField
             label="Hạn sử dụng"

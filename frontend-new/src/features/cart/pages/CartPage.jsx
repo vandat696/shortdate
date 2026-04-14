@@ -270,7 +270,7 @@ export default function CartPage() {
   if (cartLoading) {
     return (
       <Box sx={{ bgcolor: '#F7FBF0', display: 'flex', alignItems: 'center', justifyContent: 'center', py: 3 }}>
-        <Typography sx={{ fontFamily: 'Myriad Condensed', fontWeight: 600, fontSize: 16 }}>
+        <Typography sx={{ fontFamily: 'Montserrat', fontWeight: 600, fontSize: 16 }}>
           Đang tải giỏ hàng...
         </Typography>
       </Box>
@@ -313,10 +313,10 @@ export default function CartPage() {
       }}>
         <Box sx={{ maxWidth: 1280, mx: 'auto', px: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box>
-            <Typography sx={{ fontFamily: 'Myriad Condensed', fontWeight: 700, fontSize: 16, color: '#964900' }}>
+            <Typography sx={{ fontFamily: 'Montserrat', fontWeight: 700, fontSize: 16, color: '#964900' }}>
               Hãy hoàn tất đơn hàng ngay!
             </Typography>
-            <Typography sx={{ fontFamily: 'Inter', fontSize: 13, color: '#964900', opacity: 0.8 }}>
+            <Typography sx={{ fontFamily: 'Montserrat', fontSize: 13, color: '#964900', opacity: 0.8 }}>
               Giá sản phẩm gần hết hạn có thể thay đổi. Hoàn tất đơn hàng để bảo đảm giá hiện tại.
             </Typography>
           </Box>
@@ -327,7 +327,7 @@ export default function CartPage() {
       <Box sx={{ maxWidth: 1280, mx: 'auto', px: 3 }}>
         {/* Header */}
         <Box sx={{ mb: 3, pb: 2, borderBottom: '1px solid #e0e0e0' }}>
-          <Typography sx={{ fontFamily: 'Myriad Condensed', fontWeight: 700, fontSize: 28, color: '#181D17' }}>
+          <Typography sx={{ fontFamily: 'Montserrat', fontWeight: 700, fontSize: 28, color: '#181D17' }}>
             Giỏ hàng
           </Typography>
         </Box>
@@ -340,7 +340,7 @@ export default function CartPage() {
             backgroundColor: '#E8F5E9', 
             color: '#0D631B', 
             border: '1px solid #0D631B',
-            fontFamily: 'Inter'
+            fontFamily: 'Montserrat'
           }}>
             ✓ Đơn hàng {orderCode} đã được tạo thành công!
           </Alert>
@@ -372,7 +372,7 @@ export default function CartPage() {
                 }}
                 sx={{ color: '#0D631B', '&.Mui-checked': { color: '#0D631B' } }}
               />
-              <Typography sx={{ fontFamily: 'Inter', fontSize: 14, fontWeight: 500, color: '#707A6C' }}>
+              <Typography sx={{ fontFamily: 'Montserrat', fontSize: 14, fontWeight: 500, color: '#707A6C' }}>
                 Chọn tất cả ({selectedItems.length}/{cart.length})
               </Typography>
             </Box>
@@ -423,22 +423,22 @@ export default function CartPage() {
                   <Box sx={{ flex: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
                       <Box>
-                        <Typography sx={{ fontFamily: 'Inter', fontSize: 16, fontWeight: 600, color: '#181D17' }}>
+                        <Typography sx={{ fontFamily: 'Montserrat', fontSize: 16, fontWeight: 600, color: '#181D17' }}>
                           {item.product?.name}
                         </Typography>
-                        <Typography sx={{ fontFamily: 'Inter', fontSize: 12, color: '#707A6C', mt: 0.5 }}>
+                        <Typography sx={{ fontFamily: 'Montserrat', fontSize: 12, color: '#707A6C', mt: 0.5 }}>
                           HSD: {item.product?.expiryDate 
                             ? new Date(item.product.expiryDate).toLocaleDateString('vi-VN') 
                             : 'N/A'}
                         </Typography>
                       </Box>
-                      <Typography sx={{ fontFamily: 'Myriad Condensed', fontSize: 16, fontWeight: 700, color: '#964900' }}>
+                      <Typography sx={{ fontFamily: 'Montserrat', fontSize: 16, fontWeight: 700, color: '#964900' }}>
                         {Math.round(item.subtotal || 0).toLocaleString('vi-VN')} ₫
                       </Typography>
                     </Box>
 
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
-                      <Typography sx={{ fontFamily: 'Inter', fontSize: 12, color: '#707A6C' }}>
+                      <Typography sx={{ fontFamily: 'Montserrat', fontSize: 12, color: '#707A6C' }}>
                         Tồn kho: <span style={{ fontWeight: 600, color: '#181D17' }}>{item.product?.stockQuantity || 0}</span>
                       </Typography>
 
@@ -487,7 +487,7 @@ export default function CartPage() {
 
             {/* Inline Checkout Form - Address & Delivery Selection */}
             <Paper sx={{ p: 3, mb: 3, backgroundColor: '#FFF5F0', border: '2px solid #FFDCC6' }}>
-              <Typography sx={{ fontFamily: 'Myriad Condensed', fontWeight: 700, fontSize: 18, color: '#181D17', mb: 2 }}>
+              <Typography sx={{ fontFamily: 'Montserrat', fontWeight: 700, fontSize: 18, color: '#181D17', mb: 2 }}>
                 Địa chỉ giao hàng
               </Typography>
 
@@ -509,16 +509,16 @@ export default function CartPage() {
                   alignItems: 'start'
                 }}>
                   <Box>
-                    <Typography sx={{ fontFamily: 'Myriad Condensed', fontWeight: 700, fontSize: 14, color: '#181D17', mb: 0.5 }}>
+                    <Typography sx={{ fontFamily: 'Montserrat', fontWeight: 700, fontSize: 14, color: '#181D17', mb: 0.5 }}>
                       {selectedAddress.label}
                     </Typography>
-                    <Typography sx={{ fontFamily: 'Inter', fontSize: 12, color: '#40493D' }}>
+                    <Typography sx={{ fontFamily: 'Montserrat', fontSize: 12, color: '#40493D' }}>
                       {selectedAddress.full_name} • {selectedAddress.phone_number}
                     </Typography>
-                    <Typography sx={{ fontFamily: 'Inter', fontSize: 12, color: '#40493D', mt: 0.5 }}>
+                    <Typography sx={{ fontFamily: 'Montserrat', fontSize: 12, color: '#40493D', mt: 0.5 }}>
                       {selectedAddress.street_address}
                     </Typography>
-                    <Typography sx={{ fontFamily: 'Inter', fontSize: 12, color: '#40493D' }}>
+                    <Typography sx={{ fontFamily: 'Montserrat', fontSize: 12, color: '#40493D' }}>
                       {selectedAddress.ward && `${selectedAddress.ward}, `}
                       {selectedAddress.district}, {selectedAddress.city}
                     </Typography>
@@ -544,7 +544,7 @@ export default function CartPage() {
               )}
 
               {/* Delivery Method Selection */}
-              <Typography sx={{ fontFamily: 'Myriad Condensed', fontWeight: 700, fontSize: 16, color: '#181D17', mb: 2, mt: 3 }}>
+              <Typography sx={{ fontFamily: 'Montserrat', fontWeight: 700, fontSize: 16, color: '#181D17', mb: 2, mt: 3 }}>
                 Phương thức giao hàng
               </Typography>
 
@@ -572,14 +572,14 @@ export default function CartPage() {
                       }}
                     >
                       <Box>
-                        <Typography sx={{ fontFamily: 'Inter', fontWeight: 600, fontSize: 14, color: '#181D17' }}>
+                        <Typography sx={{ fontFamily: 'Montserrat', fontWeight: 600, fontSize: 14, color: '#181D17' }}>
                           {method.name}
                         </Typography>
-                        <Typography sx={{ fontFamily: 'Inter', fontSize: 12, color: '#707A6C', mt: 0.5 }}>
+                        <Typography sx={{ fontFamily: 'Montserrat', fontSize: 12, color: '#707A6C', mt: 0.5 }}>
                           {method.description}
                         </Typography>
                       </Box>
-                      <Typography sx={{ fontFamily: 'Myriad Condensed', fontWeight: 700, fontSize: 14, color: '#0D631B' }}>
+                      <Typography sx={{ fontFamily: 'Montserrat', fontWeight: 700, fontSize: 14, color: '#0D631B' }}>
                         {Math.round(method.base_price).toLocaleString('vi-VN')} ₫
                       </Typography>
                     </Box>
@@ -597,25 +597,25 @@ export default function CartPage() {
             height: 'fit-content'
           }}>
             <Paper sx={{ p: 3, backgroundColor: 'white', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
-              <Typography sx={{ fontFamily: 'Myriad Condensed', fontSize: 18, fontWeight: 700, color: '#181D17', mb: 2 }}>
+              <Typography sx={{ fontFamily: 'Montserrat', fontSize: 18, fontWeight: 700, color: '#181D17', mb: 2 }}>
                 Tóm tắt đơn hàng
               </Typography>
 
               {/* Price Breakdown */}
               <Box sx={{ mb: 2, p: 2, backgroundColor: '#F7FBF0', borderRadius: 1 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
-                  <Typography sx={{ fontFamily: 'Inter', fontSize: 14, color: '#707A6C' }}>
+                  <Typography sx={{ fontFamily: 'Montserrat', fontSize: 14, color: '#707A6C' }}>
                     Tạm tính:
                   </Typography>
-                  <Typography sx={{ fontFamily: 'Inter', fontSize: 14, fontWeight: 500, color: '#181D17' }}>
+                  <Typography sx={{ fontFamily: 'Montserrat', fontSize: 14, fontWeight: 500, color: '#181D17' }}>
                     {Math.round(selectedTotal).toLocaleString('vi-VN')} ₫
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography sx={{ fontFamily: 'Inter', fontSize: 14, color: '#707A6C' }}>
+                  <Typography sx={{ fontFamily: 'Montserrat', fontSize: 14, color: '#707A6C' }}>
                     Phí vận chuyển:
                   </Typography>
-                  <Typography sx={{ fontFamily: 'Inter', fontSize: 14, fontWeight: 500, color: '#181D17' }}>
+                  <Typography sx={{ fontFamily: 'Montserrat', fontSize: 14, fontWeight: 500, color: '#181D17' }}>
                     {Math.round(shippingFee).toLocaleString('vi-VN')} ₫
                   </Typography>
                 </Box>
@@ -623,23 +623,23 @@ export default function CartPage() {
 
               {/* Total */}
               <Box sx={{ py: 2, borderTop: '2px solid #e0e0e0', borderBottom: '2px solid #e0e0e0', display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-                <Typography sx={{ fontFamily: 'Myriad Condensed', fontSize: 16, fontWeight: 700, color: '#181D17' }}>
+                <Typography sx={{ fontFamily: 'Montserrat', fontSize: 16, fontWeight: 700, color: '#181D17' }}>
                   Tổng tiền:
                 </Typography>
-                <Typography sx={{ fontFamily: 'Myriad Condensed', fontSize: 18, fontWeight: 700, color: '#0D631B' }}>
+                <Typography sx={{ fontFamily: 'Montserrat', fontSize: 18, fontWeight: 700, color: '#0D631B' }}>
                   {Math.round(totalWithShipping).toLocaleString('vi-VN')} ₫
                 </Typography>
               </Box>
 
               {/* Items Count Badge */}
               <Box sx={{ p: 2, backgroundColor: '#E8F5E9', borderRadius: 1, mb: 3, textAlign: 'center' }}>
-                <Typography sx={{ fontFamily: 'Myriad Condensed', fontSize: 18, fontWeight: 700, color: '#0D631B' }}>
+                <Typography sx={{ fontFamily: 'Montserrat', fontSize: 18, fontWeight: 700, color: '#0D631B' }}>
                   {selectedItems.length} sản phẩm
                 </Typography>
               </Box>
 
               {/* Payment Methods */}
-              <Typography sx={{ fontFamily: 'Myriad Condensed', fontSize: 18, fontWeight: 700, color: '#181D17', mb: 2 }}>
+              <Typography sx={{ fontFamily: 'Montserrat', fontSize: 18, fontWeight: 700, color: '#181D17', mb: 2 }}>
                Phương Thức Thanh Toán
               </Typography>
               <RadioGroup
@@ -656,7 +656,7 @@ export default function CartPage() {
                     key={method.value}
                     value={method.value}
                     control={<Radio sx={{ color: '#0D631B', '&.Mui-checked': { color: '#0D631B' } }} />}
-                    label={<Typography sx={{ fontFamily: 'Inter', fontSize: 12 }}>{method.label}</Typography>}
+                    label={<Typography sx={{ fontFamily: 'Montserrat', fontSize: 12 }}>{method.label}</Typography>}
                     sx={{ mb: 0.5 }}
                   />
                 ))}
@@ -664,7 +664,7 @@ export default function CartPage() {
 
               {/* Savings Info */}
               <Box sx={{ p: 2, backgroundColor: '#FFF5F0', borderRadius: 1, border: '1px dashed #964900', mb: 2 }}>
-                <Typography sx={{ fontFamily: 'Inter', fontSize: 12, color: '#707A6C' }}>
+                <Typography sx={{ fontFamily: 'Montserrat', fontSize: 12, color: '#707A6C' }}>
                   Bạn tiết kiệm {selectedTotal > 0 ? Math.floor(selectedTotal * 0.2) : 0}₫ với giá gần hết hạn!
                 </Typography>
               </Box>
@@ -679,7 +679,7 @@ export default function CartPage() {
                 sx={{
                   backgroundColor: '#0D631B',
                   color: 'white',
-                  fontFamily: 'Myriad Condensed',
+                  fontFamily: 'Montserrat',
                   fontSize: 16,
                   fontWeight: 700,
                   py: 1.5,
@@ -702,7 +702,7 @@ export default function CartPage() {
                 sx={{
                   color: '#0D631B',
                   borderColor: '#0D631B',
-                  fontFamily: 'Inter',
+                  fontFamily: 'Montserrat',
                   fontSize: 14,
                   fontWeight: 600,
                   py: 1,
@@ -710,7 +710,7 @@ export default function CartPage() {
                   '&:hover': { backgroundColor: 'rgba(13, 99, 27, 0.05)' }
                 }}
               >
-                ← Tiếp Tục Mua Sắm
+                Tiếp tục mua sắm
               </Button>
             </Paper>
           </Box>

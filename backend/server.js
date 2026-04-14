@@ -5,6 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import authRoutes from './src/routes/auth.js';
 import productRoutes from './src/routes/products.js';
+import categoryRoutes from './src/routes/categories.js';
 import pricingRoutes from './src/routes/pricing.js';
 import cartRoutes from './src/routes/cart.js';
 import orderRoutes from './src/routes/orders.js';
@@ -58,6 +59,7 @@ app.get('/api/health', (req, res) => {
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/categories', categoryRoutes);
 app.use('/api/pricing', pricingRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);

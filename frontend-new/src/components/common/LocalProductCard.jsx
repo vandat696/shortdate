@@ -1,4 +1,4 @@
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, Rating } from '@mui/material';
 import StoreIcon from '@mui/icons-material/Store';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PropTypes from 'prop-types';
@@ -16,7 +16,9 @@ export default function LocalProductCard({
   delivery,
   supplierName,
   supplierLatitude,
-  supplierLongitude
+  supplierLongitude,
+  average_rating,
+  rating_count
 }) {
   const navigate = useNavigate();
 
@@ -107,6 +109,29 @@ export default function LocalProductCard({
         >
           {name}
         </Typography>
+
+        {/* Star Rating */}
+        {average_rating && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Rating
+              value={Number(average_rating) || 0}
+              readOnly
+              size="small"
+              sx={{ color: '#ffc107' }}
+            />
+            <Typography
+              sx={{
+                fontFamily: '"Inter",system-ui,sans-serif',
+                fontWeight: 600,
+                fontSize: '12px',
+                lineHeight: '16px',
+                color: '#666666',
+              }}
+            >
+              ({rating_count || 0})
+            </Typography>
+          </Box>
+        )}
 
         {/* Supplier Name */}
         {supplierName && (
@@ -207,6 +232,8 @@ LocalProductCard.propTypes = {
   supplierName: PropTypes.string,
   supplierLatitude: PropTypes.number,
   supplierLongitude: PropTypes.number,
+  average_rating: PropTypes.number,
+  rating_count: PropTypes.number,
 };
 
 LocalProductCard.defaultProps = {

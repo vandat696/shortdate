@@ -236,7 +236,7 @@ export default function SupplierProductsPage() {
                             {product.name}
                           </Typography>
                           <Typography variant="caption" color="textSecondary">
-                            {product.category}
+                            {product.categories?.map(cat => cat.name).join(', ') || 'Không có danh mục'}
                           </Typography>
                         </Box>
                       </TableCell>

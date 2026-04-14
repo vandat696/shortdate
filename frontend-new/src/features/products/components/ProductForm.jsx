@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -20,13 +20,13 @@ import {
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ImageIcon from '@mui/icons-material/Image';
-import api from '../../../services/api';
+import api, { productService } from '../../../services/api';
 
 export default function ProductForm({ initialData = null, onSuccess = null }) {
   const [formData, setFormData] = useState({
     name: initialData?.name || '',
     description: initialData?.description || '',
-    category: initialData?.category || '',
+    categoryIds: initialData?.categories?.map(c => c.id) || [],
     product_type: initialData?.product_type || 'dry_product',
     original_price: initialData?.original_price || '',
     current_price: initialData?.current_price || '',
@@ -43,11 +43,35 @@ export default function ProductForm({ initialData = null, onSuccess = null }) {
   const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
   
+  // Categories state
+  const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+  
   // Image upload state
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [dragging, setDragging] = useState(false);
+
+  // Fetch categories on mount
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      setLoadingCategories(true);
+      const response = await productService.getCategories();
+      console.log('Categories response:', response);
+      const categoryList = response.data || [];
+      setCategories(categoryList);
+    } catch (err) {
+      console.error('Error fetching categories:', err);
+      setErrorMessage('Lỗi khi tải danh mục');
+    } finally {
+      setLoadingCategories(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -57,11 +81,21 @@ export default function ProductForm({ initialData = null, onSuccess = null }) {
     }));
   };
 
+  const handleCategoryChange = (e) => {
+    const { value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      categoryIds: typeof value === 'string' ? value.split(',') : value
+    }));
+  };
+
   const validateForm = () => {
     const newErrors = {};
 
     if (!formData.name.trim()) newErrors.name = 'Tên sản phẩm là bắt buộc';
-    if (!formData.category.trim()) newErrors.category = 'Danh mục là bắt buộc';
+    if (!formData.categoryIds || formData.categoryIds.length === 0) {
+      newErrors.categoryIds = 'Vui lòng chọn ít nhất một danh mục';
+    }
     if (!formData.product_type) newErrors.product_type = 'Loại sản phẩm là bắt buộc';
     if (!formData.original_price) newErrors.original_price = 'Giá gốc là bắt buộc';
     if (!formData.current_price) newErrors.current_price = 'Giá bán là bắt buộc';
@@ -182,6 +216,7 @@ export default function ProductForm({ initialData = null, onSuccess = null }) {
 
       const payload = {
         ...formData,
+        categoryIds: formData.categoryIds.map(id => parseInt(id, 10)),
         original_price: parseFloat(formData.original_price),
         current_price: parseFloat(formData.current_price),
         min_floor_price: formData.min_floor_price ? parseFloat(formData.min_floor_price) : null,
@@ -216,7 +251,7 @@ export default function ProductForm({ initialData = null, onSuccess = null }) {
         setFormData({
           name: '',
           description: '',
-          category: '',
+          categoryIds: [],
           product_type: 'dry_product',
           original_price: '',
           current_price: '',
@@ -276,15 +311,32 @@ export default function ProductForm({ initialData = null, onSuccess = null }) {
             </Grid>
 
             <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Danh mục*"
-                name="category"
-                value={formData.category}
-                onChange={handleInputChange}
-                error={!!errors.category}
-                helperText={errors.category}
-              />
+              <FormControl fullWidth error={!!errors.categoryIds} disabled={loadingCategories}>
+                <InputLabel>Danh mục*</InputLabel>
+                <Select
+                  multiple
+                  name="categoryIds"
+                  value={formData.categoryIds.map(id => String(id))}
+                  onChange={handleCategoryChange}
+                  renderValue={(selected) => {
+                    const selectedCats = selected.map(id => 
+                      categories.find(c => String(c.id) === String(id))?.name
+                    ).filter(Boolean);
+                    return selectedCats.join(', ');
+                  }}
+                >
+                  {categories.map((category) => (
+                    <MenuItem key={category.id} value={String(category.id)}>
+                      {category.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              {errors.categoryIds && (
+                <div style={{ color: '#d32f2f', fontSize: '0.75rem', marginTop: '4px' }}>
+                  {errors.categoryIds}
+                </div>
+              )}
             </Grid>
 
             {/* Row 2 */}
