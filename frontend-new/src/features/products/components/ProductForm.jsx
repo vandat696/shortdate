@@ -188,13 +188,12 @@ export default function ProductForm({ initialData = null, onSuccess = null }) {
         }
       });
 
-      setSuccessMessage('Sản phẩm và ảnh được lưu thành công');
       setSelectedFiles([]);
       setImagePreviews([]);
+      return response.data;
     } catch (err) {
-      setErrorMessage(
-        err.response?.data?.error || 'Lỗi khi tải ảnh'
-      );
+      const errorMsg = err.response?.data?.error || 'Lỗi khi tải ảnh';
+      throw new Error(errorMsg);
     } finally {
       setUploadingImages(false);
     }
@@ -236,15 +235,22 @@ export default function ProductForm({ initialData = null, onSuccess = null }) {
       }
 
       const newProductId = response.data.product.id;
+      let successMsg = response.data.message || 'Sản phẩm được lưu thành công';
 
       // Upload images if any selected
       if (selectedFiles.length > 0 && !initialData?.id) {
-        await uploadProductImages(newProductId);
-      } else {
-        setSuccessMessage(
-          response.data.message || 'Sản phẩm được lưu thành công'
-        );
+        try {
+          await uploadProductImages(newProductId);
+          successMsg = 'Sản phẩm và ảnh được lưu thành công';
+        } catch (uploadErr) {
+          // If upload fails, still show product created but mention image error
+          setErrorMessage(uploadErr.message || 'Lỗi khi tải ảnh sản phẩm');
+          setLoading(false);
+          return; // Don't call onSuccess if upload failed
+        }
       }
+
+      setSuccessMessage(successMsg);
 
       // Reset form
       if (!initialData?.id) {
@@ -264,6 +270,7 @@ export default function ProductForm({ initialData = null, onSuccess = null }) {
         });
       }
 
+      // Only call onSuccess if everything succeeded
       if (onSuccess) {
         onSuccess(response.data.product);
       }
