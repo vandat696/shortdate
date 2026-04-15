@@ -104,7 +104,7 @@ export const pricingPackageService = {
   getPackageDetail: (id) =>
     api.get(`/pricing-packages/${id}`),
   getSupplierPackages: (supplierId) =>
-    api.get(`/pricing-packages/supplier/${supplierId}`),
+    api.get('/pricing-packages', { params: { supplier_id: supplierId } }),
   createPackage: (data) =>
     api.post('/pricing-packages', data),
   updatePackage: (id, data) =>

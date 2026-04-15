@@ -96,18 +96,31 @@ export function CartProvider({ children }) {
         // Chưa đăng nhập, lưu vào localStorage
         const savedCart = localStorage.getItem('guestCart');
         const guestCart = savedCart ? JSON.parse(savedCart) : [];
-        const existing = guestCart.find(item => item.product_id === productId);
+        const itemType = data.item.itemType || 'product';
+        
+        const existing = guestCart.find(item => item.product_id === productId && item.itemType === itemType);
         if (existing) {
-          existing.quantity += quantity;
+          if (itemType === 'package') {
+            // Package luôn là 1
+            existing.quantity = 1;
+          } else {
+            // Product có thể cộng gộp
+            existing.quantity += quantity;
+          }
         } else {
-          guestCart.push({ product_id: productId, quantity, unit_price: data.item.unit_price });
+          guestCart.push({ 
+            product_id: productId, 
+            quantity,
+            unit_price: data.item.unit_price,
+            itemType
+          });
         }
         localStorage.setItem('guestCart', JSON.stringify(guestCart));
         setCart(guestCart);
         return true;
       }
 
-      // Dã đăng nhập, fetch cart mới
+      // Đã đăng nhập, fetch cart mới
       await fetchCart();
       setError(null);
       return true;
@@ -214,17 +227,18 @@ export function CartProvider({ children }) {
   };
 
   // Toggle select item
-  const toggleSelectItem = (productId) => {
+  const toggleSelectItem = (productId, itemType = 'product') => {
+    const itemKey = `${itemType}:${productId}`;
     setSelectedItems(prev =>
-      prev.includes(productId)
-        ? prev.filter(id => id !== productId)
-        : [...prev, productId]
+      prev.includes(itemKey)
+        ? prev.filter(key => key !== itemKey)
+        : [...prev, itemKey]
     );
   };
 
   // Select all items
   const selectAllItems = () => {
-    setSelectedItems(cart.map(item => item.product_id));
+    setSelectedItems(cart.map(item => `${item.item_type || 'product'}:${item.product_id}`));
   };
 
   // Unselect all items
@@ -234,7 +248,10 @@ export function CartProvider({ children }) {
 
   // Get selected items
   const getSelectedItems = () => {
-    return cart.filter(item => selectedItems.includes(item.product_id));
+    return cart.filter(item => {
+      const itemKey = `${item.item_type || 'product'}:${item.product_id}`;
+      return selectedItems.includes(itemKey);
+    });
   };
 
   // Get selected total

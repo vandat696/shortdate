@@ -18,6 +18,8 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  Dialog,
+  Backdrop,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
@@ -27,6 +29,7 @@ import axios from 'axios';
 import { useCart } from '../../../hooks/useCart.jsx';
 import { useAuth } from '../../../hooks/useAuth';
 import AddressManagementModal from '../../../components/common/AddressManagementModal';
+import OrderReceipt from '../components/OrderReceipt';
 import { getImageUrl } from '../../../services/api';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -59,6 +62,8 @@ export default function CartPage() {
   const [orderError, setOrderError] = useState(null);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [orderCode, setOrderCode] = useState('');
+  const [orderData, setOrderData] = useState(null);
+  const [receiptDialogOpen, setReceiptDialogOpen] = useState(false);
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [loadingAddresses, setLoadingAddresses] = useState(false);
   const [loadingMethods, setLoadingMethods] = useState(false);
@@ -210,7 +215,9 @@ export default function CartPage() {
           paymentMethod,
           items: selectedItemsData.map(item => ({
             productId: item.product_id,
-            quantity: item.quantity
+            packageId: item.package_id,
+            quantity: item.quantity,
+            itemType: item.item_type || 'product'
           }))
         })
       });
@@ -221,9 +228,23 @@ export default function CartPage() {
         throw new Error(data.error || 'Lỗi khi tạo đơn hàng');
       }
 
+      // Debug: log order data from backend
+      console.log('=== ORDER RESPONSE DEBUG ===');
+      console.log('Full response data:', data);
+      console.log('Order object:', data.order);
+      console.log('Order properties:', Object.keys(data.order || {}));
+      console.log('Items array:', data.order?.items);
+      console.log('Items length:', data.order?.items?.length);
+      if (data.order?.items?.length > 0) {
+        console.log('First item:', data.order.items[0]);
+      }
+      console.log('=== END DEBUG ===');
+
       const orderId = data.order.id;
       setOrderCode(data.order.orderCode);
+      setOrderData(data.order);
       setOrderSuccess(true);
+      setReceiptDialogOpen(true);
 
       // Clear cart immediately
       await clearCart();
@@ -340,9 +361,26 @@ export default function CartPage() {
             backgroundColor: '#E8F5E9', 
             color: '#0D631B', 
             border: '1px solid #0D631B',
-            fontFamily: 'Montserrat'
+            fontFamily: 'Montserrat',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
           }}>
-            ✓ Đơn hàng {orderCode} đã được tạo thành công!
+            <span>✓ Đơn hàng {orderCode} đã được tạo thành công!</span>
+            <Button
+              size="small"
+              onClick={() => setReceiptDialogOpen(true)}
+              sx={{
+                backgroundColor: '#0D631B',
+                color: '#fff',
+                fontSize: 12,
+                textTransform: 'none',
+                fontFamily: 'Montserrat',
+                '&:hover': { backgroundColor: '#0A4A15' }
+              }}
+            >
+              Xem chi tiết
+            </Button>
           </Alert>
         )}
 
@@ -393,8 +431,8 @@ export default function CartPage() {
                 >
                   {/* Checkbox */}
                   <Checkbox
-                    checked={selectedItems.includes(item.product_id)}
-                    onChange={() => toggleSelectItem(item.product_id)}
+                    checked={selectedItems.includes(`${item.item_type || 'product'}:${item.product_id}`)}
+                    onChange={() => toggleSelectItem(item.product_id, item.item_type || 'product')}
                     sx={{ color: '#0D631B', '&.Mui-checked': { color: '#0D631B' }, mt: 0.5 }}
                   />
 
@@ -723,6 +761,74 @@ export default function CartPage() {
         onClose={() => setShowAddressModal(false)}
         onAddressSelect={handleAddressSelect}
         onAddressChange={fetchAddresses}
+      />
+
+      {/* Loading Dialog */}
+      <Dialog
+        open={loading && !receiptDialogOpen}
+        onClose={() => {}}
+        maxWidth="xs"
+        fullWidth
+        BackdropComponent={Backdrop}
+        BackdropProps={{
+          sx: { 
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            backdropFilter: 'blur(2px)'
+          }
+        }}
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.15)'
+          }
+        }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            p: 4,
+            textAlign: 'center',
+            backgroundColor: '#fff'
+          }}
+        >
+          <CircularProgress
+            size={60}
+            sx={{
+              color: '#0D631B',
+              mb: 2
+            }}
+          />
+          <Typography
+            sx={{
+              fontSize: 18,
+              fontWeight: 600,
+              color: '#333',
+              mb: 1,
+              fontFamily: 'Montserrat'
+            }}
+          >
+            Đang xử lý thanh toán
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: 13,
+              color: '#999',
+              fontFamily: 'Montserrat'
+            }}
+          >
+            Vui lòng chờ, hệ thống đang tạo đơn hàng của bạn...
+          </Typography>
+        </Box>
+      </Dialog>
+
+      {/* Order Receipt Dialog */}
+      <OrderReceipt
+        open={receiptDialogOpen}
+        onClose={() => setReceiptDialogOpen(false)}
+        order={orderData}
       />
     </Box>
   );

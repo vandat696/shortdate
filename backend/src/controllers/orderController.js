@@ -27,8 +27,8 @@ async function generateOrderCode() {
 class OrderController {
   /**
    * POST /orders
-   * Tạo đơn hàng mới từ các sản phẩm được chọn
-   * Body: { addressId, deliveryMethodId, paymentMethod, items: [{ productId, quantity }] }
+   * Tạo đơn hàng mới từ các sản phẩm và/hoặc gói giá được chọn
+   * Body: { addressId, deliveryMethodId, paymentMethod, items: [{ productId, packageId, quantity, itemType }] }
    */
   static async createOrder(req, res) {
     try {
@@ -85,56 +85,97 @@ class OrderController {
         });
       }
 
-      // Lấy thông tin sản phẩm từ database
-      const productIds = items.map(item => item.productId);
-      const productsResult = await db.query(
-        `SELECT id, current_price, stock_quantity, supplier_id, product_type, name
-         FROM products
-         WHERE id = ANY($1)`,
-        [productIds]
-      );
-
-      const productsMap = new Map();
-      productsResult.rows.forEach(row => {
-        productsMap.set(row.id, row);
-      });
-
-      // Verify các sản phẩm vẫn tồn tại và validate tồn kho
       const orderItems = [];
       let subtotal = 0;
+      let supplierId = null;
 
+      // Process each item (could be product or package)
       for (const item of items) {
-        const product = productsMap.get(item.productId);
-        
-        if (!product) {
-          return res.status(404).json({
-            error: 'Sản phẩm không tồn tại',
-            productId: item.productId
+        const itemType = item.itemType || 'product';
+
+        if (itemType === 'package') {
+          // Process pricing package
+          const packageResult = await db.query(
+            `SELECT id, package_name, package_price, stock_quantity, supplier_id
+             FROM pricing_packages WHERE id = $1 AND is_active = true`,
+            [item.packageId]
+          );
+
+          if (packageResult.rows.length === 0) {
+            return res.status(404).json({
+              error: 'Gói giá không tồn tại',
+              packageId: item.packageId
+            });
+          }
+
+          const pkg = packageResult.rows[0];
+
+          // Package quantity luôn là 1
+          const itemQuantity = 1;
+          
+          if (itemQuantity > pkg.stock_quantity) {
+            return res.status(409).json({
+              error: 'Tồn kho gói giá không đủ',
+              package: pkg.package_name,
+              available: pkg.stock_quantity
+            });
+          }
+
+          const itemSubtotal = Number(pkg.package_price);
+          orderItems.push({
+            package_id: pkg.id,
+            package_name: pkg.package_name,
+            supplier_id: pkg.supplier_id,
+            quantity: itemQuantity,
+            unit_price: Number(pkg.package_price),
+            subtotal: itemSubtotal,
+            item_type: 'package'
           });
-        }
 
-        // Validate tồn kho
-        if (item.quantity > product.stock_quantity) {
-          return res.status(409).json({
-            error: 'Tồn kho không đủ',
-            product: product.name,
-            requested: item.quantity,
-            available: product.stock_quantity
+          subtotal += itemSubtotal;
+          supplierId = pkg.supplier_id;
+        } else {
+          // Process regular product
+          const productResult = await db.query(
+            `SELECT id, current_price, stock_quantity, supplier_id, product_type, name
+             FROM products WHERE id = $1`,
+            [item.productId]
+          );
+
+          if (productResult.rows.length === 0) {
+            return res.status(404).json({
+              error: 'Sản phẩm không tồn tại',
+              productId: item.productId
+            });
+          }
+
+          const product = productResult.rows[0];
+
+          // Validate stock
+          if (item.quantity > product.stock_quantity) {
+            return res.status(409).json({
+              error: 'Tồn kho không đủ',
+              product: product.name,
+              requested: item.quantity,
+              available: product.stock_quantity
+            });
+          }
+
+          const itemSubtotal = Number(product.current_price) * Number(item.quantity);
+          orderItems.push({
+            product_id: product.id,
+            product_name: product.name,
+            supplier_id: product.supplier_id,
+            quantity: item.quantity,
+            unit_price: Number(product.current_price),
+            subtotal: itemSubtotal,
+            product_type: product.product_type,
+            item_type: 'product'
           });
+
+          subtotal += itemSubtotal;
+          supplierId = product.supplier_id;
         }
-
-        // Build order item
-        const itemSubtotal = Number(product.current_price) * Number(item.quantity);
-        orderItems.push({
-          product_id: product.id,
-          supplier_id: product.supplier_id,
-          quantity: item.quantity,
-          unit_price: Number(product.current_price),
-          subtotal: itemSubtotal,
-          product_type: product.product_type
-        });
-
-        subtotal += itemSubtotal;
       }
 
       // Calculate shipping fee from delivery method
@@ -142,9 +183,6 @@ class OrderController {
 
       // Create order
       const totalAmount = Number(subtotal) + Number(shippingFee);
-      
-      // Get first product's supplier_id (assume same supplier for now)
-      const supplierId = orderItems[0].supplier_id;
 
       // Format address for storage
       const deliveryAddressText = `${address.full_name}, ${address.phone_number}, ${address.street_address}${address.ward ? ', ' + address.ward : ''}, ${address.district}, ${address.city}`;
@@ -175,23 +213,42 @@ class OrderController {
 
       // Insert order items
       for (const item of orderItems) {
-        await db.query(
-          `INSERT INTO order_items (order_id, product_id, quantity, unit_price, total_price)
-           VALUES ($1, $2, $3, $4, $5)`,
-          [orderId, item.product_id, item.quantity, item.unit_price, item.subtotal]
-        );
+        if (item.item_type === 'package') {
+          // Insert package order item
+          await db.query(
+            `INSERT INTO order_items (order_id, package_id, quantity, unit_price, total_price, item_type)
+             VALUES ($1, $2, $3, $4, $5, $6)`,
+            [orderId, item.package_id, item.quantity, item.unit_price, item.subtotal, 'package']
+          );
 
-        // TRỪ tồn kho ngay lập tức
-        await db.query(
-          `UPDATE products SET stock_quantity = stock_quantity - $1 WHERE id = $2`,
-          [item.quantity, item.product_id]
-        );
+          // Deduct package stock
+          await db.query(
+            `UPDATE pricing_packages SET stock_quantity = stock_quantity - $1 WHERE id = $2`,
+            [item.quantity, item.package_id]
+          );
+        } else {
+          // Insert product order item
+          await db.query(
+            `INSERT INTO order_items (order_id, product_id, quantity, unit_price, total_price, item_type)
+             VALUES ($1, $2, $3, $4, $5, $6)`,
+            [orderId, item.product_id, item.quantity, item.unit_price, item.subtotal, 'product']
+          );
+
+          // Deduct product stock
+          await db.query(
+            `UPDATE products SET stock_quantity = stock_quantity - $1 WHERE id = $2`,
+            [item.quantity, item.product_id]
+          );
+        }
       }
 
-      // Xóa các sản phẩm đã chọn khỏi giỏ hàng
+      // Delete selected items from cart
       await db.query(
-        `DELETE FROM carts WHERE user_id = $1 AND product_id = ANY($2)`,
-        [userId, productIds]
+        `DELETE FROM carts WHERE user_id = $1 AND (
+          (product_id = ANY($2) AND item_type = 'product') OR
+          (package_id = ANY($3) AND item_type = 'package')
+        )`,
+        [userId, items.filter(i => i.itemType === 'product').map(i => i.productId), items.filter(i => i.itemType === 'package').map(i => i.packageId)]
       );
 
       // Generate order code
@@ -208,6 +265,23 @@ class OrderController {
           orderCode,
           buyerId: userId,
           itemsCount: orderItems.length,
+          items: orderItems.map(item => {
+            // Build name with fallback
+            let itemName = '';
+            if (item.item_type === 'package') {
+              itemName = item.package_name || `Gói #${item.package_id}`;
+            } else {
+              itemName = item.product_name || `Sản phẩm #${item.product_id}`;
+            }
+            
+            return {
+              type: item.item_type,
+              name: itemName,
+              quantity: item.quantity,
+              unitPrice: item.unit_price,
+              totalPrice: item.subtotal
+            };
+          }),
           subtotal,
           shippingFee,
           totalAmount,
@@ -264,22 +338,54 @@ class OrderController {
       );
       const buyer = buyerResult.rows[0];
 
-      // Lấy order items
+      // Lấy order items - bao gồm cả products và pricing packages
       const itemsResult = await db.query(
-        `SELECT oi.*, p.name, p.image_url FROM order_items oi
-         JOIN products p ON oi.product_id = p.id
+        `SELECT 
+          oi.*, 
+          p.name as product_name, 
+          p.image_url as product_image,
+          pp.package_name, 
+          pp.display_image as package_image
+         FROM order_items oi
+         LEFT JOIN products p ON oi.product_id = p.id
+         LEFT JOIN pricing_packages pp ON oi.package_id = pp.id
          WHERE oi.order_id = $1`,
         [orderId]
       );
 
-      const items = itemsResult.rows.map(item => ({
-        productId: item.product_id,
-        productName: item.name,
-        productImage: item.image_url,
-        quantity: item.quantity,
-        unitPrice: item.unit_price,
-        totalPrice: Number(item.total_price) || 0
-      }));
+      console.log('🔍 [getOrder] itemsResult.rows:', itemsResult.rows);
+      
+      const items = itemsResult.rows.map((item, idx) => {
+        console.log(`📌 [getOrder] Processing item ${idx}:`, {
+          item_type: item.item_type,
+          product_id: item.product_id,
+          package_id: item.package_id,
+          product_name: item.product_name,
+          package_name: item.package_name
+        });
+        
+        if (item.item_type === 'package') {
+          return {
+            packageId: item.package_id,
+            packageName: item.package_name,
+            packageImage: item.package_image,
+            quantity: item.quantity,
+            unitPrice: item.unit_price,
+            totalPrice: Number(item.total_price) || 0,
+            type: 'package'
+          };
+        } else {
+          return {
+            productId: item.product_id,
+            productName: item.product_name,
+            productImage: item.product_image,
+            quantity: item.quantity,
+            unitPrice: item.unit_price,
+            totalPrice: Number(item.total_price) || 0,
+            type: 'product'
+          };
+        }
+      });
 
       // Tính subtotal từ items
       const subtotal = items.reduce((sum, item) => sum + Number(item.totalPrice), 0);

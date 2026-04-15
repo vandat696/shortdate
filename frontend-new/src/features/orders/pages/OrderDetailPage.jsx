@@ -53,6 +53,23 @@ export default function OrderDetailPage() {
         const data = await response.json();
         setOrder(data.order);
         setItems(data.items || []);
+        
+        // Debug items structure
+        console.log('🔍 OrderDetailPage - Backend items:', data.items);
+        if (data.items && data.items.length > 0) {
+          console.log('📌 First item structure:', data.items[0]);
+          console.log('📌 Item keys:', Object.keys(data.items[0]));
+          data.items.forEach((item, idx) => {
+            console.log(`   Item ${idx}:`, {
+              type: item.type,
+              packageName: item.packageName,
+              productName: item.productName,
+              packageId: item.packageId,
+              productId: item.productId
+            });
+          });
+        }
+        
         setError(null);
       } catch (err) {
         console.error('Error fetching order:', err);
@@ -229,43 +246,66 @@ export default function OrderDetailPage() {
       {/* Danh sách sản phẩm */}
       <TableContainer component={Paper} sx={{ mb: 3 }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 700, p: 2 }}>
-          Chi Tiết Sản Phẩm
+          Chi Tiết Sản Phẩm / Gói Giá
         </Typography>
         <Table>
           <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
             <TableRow>
-              <TableCell><strong>Sản Phẩm</strong></TableCell>
+              <TableCell><strong>Sản Phẩm / Gói</strong></TableCell>
               <TableCell align="right"><strong>Giá</strong></TableCell>
               <TableCell align="center"><strong>Số Lượng</strong></TableCell>
               <TableCell align="right"><strong>Tổng Tiền</strong></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {items.map((item) => (
-              <TableRow key={item.productId}>
-                <TableCell>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    {item.productImage && (
-                      <Box
-                        component="img"
-                        src={getImageUrl(item.productImage)}
-                        sx={{ width: 50, height: 50, borderRadius: 1, objectFit: 'cover' }}
-                      />
-                    )}
-                    <Typography variant="body2">{item.productName}</Typography>
-                  </Box>
-                </TableCell>
-                <TableCell align="right">
-                  {Math.round(item.unitPrice).toLocaleString('vi-VN')} ₫
-                </TableCell>
-                <TableCell align="center">
-                  {item.quantity}
-                </TableCell>
-                <TableCell align="right">
-                  <strong>{Math.round(item.totalPrice).toLocaleString('vi-VN')} ₫</strong>
-                </TableCell>
-              </TableRow>
-            ))}
+            {items.map((item) => {
+              // Debug log trước khi rendering
+              if (!item.type) {
+                console.warn('⚠️ Item missing type:', item);
+              }
+              
+              const itemKey = item.type === 'package' ? `pkg-${item.packageId}` : `prod-${item.productId}`;
+              const itemName = item.type === 'package' ? item.packageName : item.productName;
+              const itemImage = item.type === 'package' ? item.packageImage : item.productImage;
+              const itemType = item.type === 'package' ? '[GÓI GIÁ]' : '[SẢN PHẨM]';
+              
+              return (
+                <TableRow key={itemKey}>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      {itemImage && (
+                        <Box
+                          component="img"
+                          src={getImageUrl(itemImage)}
+                          sx={{ width: 50, height: 50, borderRadius: 1, objectFit: 'cover' }}
+                          onError={(e) => { e.target.style.display = 'none'; }}
+                        />
+                      )}
+                      <Box>
+                        <Typography variant="body2">
+                          <strong>
+                            {itemName || 'Không có tên'} 
+                            {!item.type && ' [TYPE NULL]'}
+                          </strong>
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#999' }}>
+                          {itemType}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </TableCell>
+                  <TableCell align="right">
+                    {Math.round(item.unitPrice).toLocaleString('vi-VN')} ₫
+                  </TableCell>
+                  <TableCell align="center">
+                    {item.quantity}
+                  </TableCell>
+                  <TableCell align="right">
+                    <strong>{Math.round(item.totalPrice).toLocaleString('vi-VN')} ₫</strong>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </TableContainer>

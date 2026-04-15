@@ -18,12 +18,28 @@ class CartController {
         return res.json({ cartId: null, items: [] });
       }
 
-      // Lấy cart items với thông tin sản phẩm
+      // Lấy cart items - bao gồm cả products và pricing packages
       const cartResult = await db.query(
-        `SELECT c.id as cart_id, c.product_id, c.quantity, c.added_at,
-                p.name, p.current_price, p.stock_quantity, p.expiry_date, p.image_url
+        `SELECT 
+          c.id as cart_id, 
+          c.product_id, 
+          c.package_id,
+          c.quantity, 
+          c.added_at,
+          c.item_type,
+          p.name as product_name, 
+          p.current_price as product_price, 
+          p.stock_quantity as product_stock,
+          p.expiry_date as product_expiry,
+          p.image_url as product_image,
+          pp.package_name,
+          pp.package_price,
+          pp.stock_quantity as package_stock,
+          pp.expiry_date as package_expiry,
+          pp.display_image as package_image
          FROM carts c
-         JOIN products p ON c.product_id = p.id
+         LEFT JOIN products p ON c.product_id = p.id
+         LEFT JOIN pricing_packages pp ON c.package_id = pp.id
          WHERE c.user_id = $1
          ORDER BY c.added_at DESC`,
         [userId]
@@ -36,20 +52,44 @@ class CartController {
       }
 
       // Transform data
-      const items = cartResult.rows.map(row => ({
-        product_id: row.product_id,
-        quantity: row.quantity,
-        unit_price: Number(row.current_price) || 0,
-        subtotal: Number(row.quantity) * Number(row.current_price) || 0,
-        product: {
-          id: row.product_id,
-          name: row.name,
-          currentPrice: Number(row.current_price) || 0,
-          stockQuantity: row.stock_quantity,
-          expiryDate: row.expiry_date,
-          images: row.image_url ? [row.image_url] : []
+      const items = cartResult.rows.map(row => {
+        if (row.item_type === 'package') {
+          // Item là Pricing Package
+          return {
+            product_id: row.package_id,
+            package_id: row.package_id,
+            quantity: row.quantity,
+            unit_price: Number(row.package_price) || 0,
+            subtotal: Number(row.quantity) * Number(row.package_price) || 0,
+            item_type: 'package',
+            product: {
+              id: row.package_id,
+              name: row.package_name,
+              currentPrice: Number(row.package_price) || 0,
+              stockQuantity: row.package_stock,
+              expiryDate: row.package_expiry,
+              images: row.package_image ? [row.package_image] : []
+            }
+          };
+        } else {
+          // Item là Product thông thường
+          return {
+            product_id: row.product_id,
+            quantity: row.quantity,
+            unit_price: Number(row.product_price) || 0,
+            subtotal: Number(row.quantity) * Number(row.product_price) || 0,
+            item_type: 'product',
+            product: {
+              id: row.product_id,
+              name: row.product_name,
+              currentPrice: Number(row.product_price) || 0,
+              stockQuantity: row.product_stock,
+              expiryDate: row.product_expiry,
+              images: row.product_image ? [row.product_image] : []
+            }
+          };
         }
-      }));
+      });
 
       console.log('[getCart] Transformed items:', items);
 
@@ -70,7 +110,7 @@ class CartController {
   /**
    * POST /cart/merge
    * Merge guest cart vào user cart khi đăng nhập
-   * Body: { items: [{product_id, quantity, unit_price}, ...] }
+   * Body: { items: [{product_id, quantity, unit_price, itemType}, ...] }
    */
   static async mergeCart(req, res) {
     try {
@@ -90,74 +130,171 @@ class CartController {
       for (const guestItem of guestItems) {
         if (!guestItem.product_id || guestItem.quantity < 1) continue;
 
-        // Kiểm tra tồn kho
-        const productResult = await db.query(
-          `SELECT stock_quantity FROM products WHERE id = $1`,
-          [guestItem.product_id]
-        );
+        const itemType = guestItem.itemType || 'product';
 
-        if (productResult.rows.length === 0) {
-          console.log('[mergeCart] Product', guestItem.product_id, 'not found, skipping');
-          continue;
+        if (itemType === 'package') {
+          // Merge Pricing Package
+          const packageResult = await db.query(
+            `SELECT stock_quantity FROM pricing_packages WHERE id = $1`,
+            [guestItem.product_id]
+          );
+
+          if (packageResult.rows.length === 0) {
+            console.log('[mergeCart] Package', guestItem.product_id, 'not found, skipping');
+            continue;
+          }
+
+          // Package luôn là 1 item
+          const requestedQty = 1;
+
+          if (requestedQty > packageResult.rows[0].stock_quantity) {
+            console.log('[mergeCart] Insufficient stock for package', guestItem.product_id);
+            continue;
+          }
+
+          // Check if already exists
+          const existsCheck = await db.query(
+            `SELECT id FROM carts WHERE user_id = $1 AND package_id = $2 AND item_type = 'package'`,
+            [userId, guestItem.product_id]
+          );
+
+          if (existsCheck.rows.length > 0) {
+            // Update existing
+            await db.query(
+              `UPDATE carts SET quantity = 1 WHERE user_id = $1 AND package_id = $2 AND item_type = 'package'`,
+              [userId, guestItem.product_id]
+            );
+          } else {
+            // Insert new
+            await db.query(
+              `INSERT INTO carts (user_id, package_id, quantity, item_type, added_at)
+               VALUES ($1, $2, $3, 'package', NOW())`,
+              [userId, guestItem.product_id, requestedQty]
+            );
+          }
+
+          console.log('[mergeCart] Merged package', guestItem.product_id, 'qty: 1');
+        } else {
+          // Merge Product thông thường
+          const productResult = await db.query(
+            `SELECT stock_quantity FROM products WHERE id = $1`,
+            [guestItem.product_id]
+          );
+
+          if (productResult.rows.length === 0) {
+            console.log('[mergeCart] Product', guestItem.product_id, 'not found, skipping');
+            continue;
+          }
+
+          const product = productResult.rows[0];
+          const requestedQty = guestItem.quantity;
+
+          if (requestedQty > product.stock_quantity) {
+            console.log('[mergeCart] Insufficient stock for product', guestItem.product_id);
+            continue;
+          }
+
+          // Check if already exists
+          const existsCheck = await db.query(
+            `SELECT id, quantity FROM carts WHERE user_id = $1 AND product_id = $2 AND item_type = 'product'`,
+            [userId, guestItem.product_id]
+          );
+
+          if (existsCheck.rows.length > 0) {
+            // Update existing - add quantity
+            const newQty = existsCheck.rows[0].quantity + requestedQty;
+            await db.query(
+              `UPDATE carts SET quantity = $1 WHERE user_id = $2 AND product_id = $3 AND item_type = 'product'`,
+              [newQty, userId, guestItem.product_id]
+            );
+          } else {
+            // Insert new
+            await db.query(
+              `INSERT INTO carts (user_id, product_id, quantity, item_type, added_at)
+               VALUES ($1, $2, $3, 'product', NOW())`,
+              [userId, guestItem.product_id, requestedQty]
+            );
+          }
+
+          console.log('[mergeCart] Merged product', guestItem.product_id, 'qty:', requestedQty);
         }
-
-        const product = productResult.rows[0];
-        const requestedQty = guestItem.quantity;
-
-        if (requestedQty > product.stock_quantity) {
-          console.log('[mergeCart] Insufficient stock for product', guestItem.product_id);
-          continue;
-        }
-
-        // Thêm vào cart (hoặc cối gộp nếu đã có)
-        await db.query(
-          `INSERT INTO carts (user_id, product_id, quantity, added_at)
-           VALUES ($1, $2, $3, NOW())
-           ON CONFLICT (user_id, product_id) DO UPDATE
-           SET quantity = carts.quantity + EXCLUDED.quantity`,
-          [userId, guestItem.product_id, requestedQty]
-        );
-
-        console.log('[mergeCart] Merged product', guestItem.product_id, 'qty:', requestedQty);
       }
 
-      // Fetch updated cart
+      // Fetch updated cart (reuse getCart logic)
       const cartResult = await db.query(
-        `SELECT c.id as cart_id, c.product_id, c.quantity, c.added_at,
-                p.name, p.current_price, p.stock_quantity, p.expiry_date, p.image_url
+        `SELECT 
+          c.id as cart_id, 
+          c.product_id, 
+          c.package_id,
+          c.quantity, 
+          c.added_at,
+          c.item_type,
+          p.name as product_name, 
+          p.current_price as product_price, 
+          p.stock_quantity as product_stock,
+          p.expiry_date as product_expiry,
+          p.image_url as product_image,
+          pp.package_name,
+          pp.package_price,
+          pp.stock_quantity as package_stock,
+          pp.expiry_date as package_expiry,
+          pp.display_image as package_image
          FROM carts c
-         JOIN products p ON c.product_id = p.id
+         LEFT JOIN products p ON c.product_id = p.id
+         LEFT JOIN pricing_packages pp ON c.package_id = pp.id
          WHERE c.user_id = $1
          ORDER BY c.added_at DESC`,
         [userId]
       );
 
-      const items = cartResult.rows.map(row => ({
-        product_id: row.product_id,
-        quantity: row.quantity,
-        unit_price: row.current_price,
-        subtotal: row.quantity * row.current_price,
-        product: {
-          id: row.product_id,
-          name: row.name,
-          currentPrice: row.current_price,
-          stockQuantity: row.stock_quantity,
-          expiryDate: row.expiry_date,
-          images: row.image_url ? [row.image_url] : []
+      const items = cartResult.rows.map(row => {
+        if (row.item_type === 'package') {
+          return {
+            product_id: row.package_id,
+            package_id: row.package_id,
+            quantity: row.quantity,
+            unit_price: row.package_price,
+            subtotal: row.quantity * row.package_price,
+            item_type: 'package',
+            product: {
+              id: row.package_id,
+              name: row.package_name,
+              currentPrice: row.package_price,
+              stockQuantity: row.package_stock,
+              expiryDate: row.package_expiry,
+              images: row.package_image ? [row.package_image] : []
+            }
+          };
+        } else {
+          return {
+            product_id: row.product_id,
+            quantity: row.quantity,
+            unit_price: row.product_price,
+            subtotal: row.quantity * row.product_price,
+            item_type: 'product',
+            product: {
+              id: row.product_id,
+              name: row.product_name,
+              currentPrice: row.product_price,
+              stockQuantity: row.product_stock,
+              expiryDate: row.product_expiry,
+              images: row.product_image ? [row.product_image] : []
+            }
+          };
         }
-      }));
+      });
 
       const totalAmount = items.reduce((sum, item) => sum + item.subtotal, 0);
 
       return res.json({
         success: true,
-        message: `Merged ${guestItems.length} items successfully`,
-        cartId: cartResult.rows.length > 0 ? cartResult.rows[0].cart_id : null,
+        itemsCount: items.length,
         items,
-        totalAmount
+        totalAmount,
+        message: 'Đã merge giỏ hàng thành công'
       });
     } catch (error) {
-      console.error('[mergeCart] Error:', error);
+      console.error('Error merging cart:', error);
       res.status(500).json({ error: 'Lỗi khi merge giỏ hàng', details: error.message });
     }
   }
@@ -181,7 +318,78 @@ class CartController {
         return res.status(400).json({ error: 'Số lượng phải là số nguyên dương' });
       }
 
-      // Lấy thông tin sản phẩm
+      // Kiểm tra xem product_id có phải là pricing package không
+      const packageResult = await db.query(
+        `SELECT id, package_name, package_price, stock_quantity 
+         FROM pricing_packages WHERE id = $1 AND is_active = true`,
+        [product_id]
+      );
+
+      const isPricingPackage = packageResult.rows.length > 0;
+
+      if (isPricingPackage) {
+        // Xử lý Pricing Package - luôn là 1 item
+        const pkg = packageResult.rows[0];
+        const itemQuantity = 1; // Gói luôn tính là 1 sản phẩm
+
+        // Validate tồn kho
+        if (pkg.stock_quantity < itemQuantity) {
+          return res.status(409).json({
+            error: 'Tồn kho không đủ',
+            maxAvailable: pkg.stock_quantity,
+            requested: itemQuantity
+          });
+        }
+
+        if (!userId) {
+          // Chưa đăng nhập: lưu vào localStorage
+          return res.json({
+            message: 'Vui lòng đăng nhập để lưu giỏ hàng',
+            item: {
+              product_id,
+              quantity: itemQuantity,
+              unit_price: pkg.package_price,
+              itemType: 'package'
+            },
+            requiresAuth: true
+          });
+        }
+
+        // Thêm hoặc cập nhật cart item
+        const existsCheck = await db.query(
+          `SELECT id FROM carts WHERE user_id = $1 AND package_id = $2 AND item_type = 'package'`,
+          [userId, product_id]
+        );
+
+        if (existsCheck.rows.length > 0) {
+          // Package đã tồn tại, set quantity = 1
+          await db.query(
+            `UPDATE carts SET quantity = 1 WHERE user_id = $1 AND package_id = $2 AND item_type = 'package'`,
+            [userId, product_id]
+          );
+        } else {
+          // Insert mới
+          await db.query(
+            `INSERT INTO carts (user_id, package_id, quantity, item_type, added_at)
+             VALUES ($1, $2, $3, 'package', NOW())`,
+            [userId, product_id, itemQuantity]
+          );
+        }
+
+        // Lấy tổng items trong cart
+        const countResult = await db.query(
+          `SELECT COUNT(*) as count FROM carts WHERE user_id = $1`,
+          [userId]
+        );
+
+        return res.json({
+          success: true,
+          itemsCount: parseInt(countResult.rows[0].count),
+          message: 'Đã thêm gói giá vào giỏ hàng'
+        });
+      }
+
+      // Xử lý Product thông thường
       const productResult = await db.query(
         `SELECT id, current_price, stock_quantity FROM products WHERE id = $1`,
         [product_id]
@@ -209,23 +417,35 @@ class CartController {
           item: {
             product_id,
             quantity,
-            unit_price: product.current_price
+            unit_price: product.current_price,
+            itemType: 'product'
           },
           requiresAuth: true
         });
       }
 
       // Thêm hoặc cập nhật cart item
-      const cartResult = await db.query(
-        `INSERT INTO carts (user_id, product_id, quantity, added_at)
-         VALUES ($1, $2, $3, NOW())
-         ON CONFLICT (user_id, product_id) DO UPDATE
-         SET quantity = carts.quantity + EXCLUDED.quantity
-         RETURNING quantity`,
-        [userId, product_id, quantity]
+      const existsCheck = await db.query(
+        `SELECT id, quantity FROM carts WHERE user_id = $1 AND product_id = $2 AND item_type = 'product'`,
+        [userId, product_id]
       );
 
-      const newQuantity = cartResult.rows[0].quantity;
+      let newQuantity = quantity;
+      if (existsCheck.rows.length > 0) {
+        // Product đã tồn tại, cộng thêm quantity
+        newQuantity = existsCheck.rows[0].quantity + quantity;
+        await db.query(
+          `UPDATE carts SET quantity = $1 WHERE user_id = $2 AND product_id = $3 AND item_type = 'product'`,
+          [newQuantity, userId, product_id]
+        );
+      } else {
+        // Insert mới
+        await db.query(
+          `INSERT INTO carts (user_id, product_id, quantity, item_type, added_at)
+           VALUES ($1, $2, $3, 'product', NOW())`,
+          [userId, product_id, quantity]
+        );
+      }
 
       // Validate lại tồn kho sau khi thêm
       if (newQuantity > product.stock_quantity) {
@@ -256,7 +476,7 @@ class CartController {
 
   /**
    * DELETE /cart/items/:product_id
-   * Xóa sản phẩm khỏi giỏ hàng
+   * Xóa sản phẩm hoặc gói giá khỏi giỏ hàng
    */
   static async removeFromCart(req, res) {
     try {
@@ -267,11 +487,26 @@ class CartController {
         return res.status(401).json({ error: 'Vui lòng đăng nhập' });
       }
 
-      // Xóa item từ cart
-      const deleteResult = await db.query(
-        `DELETE FROM carts WHERE user_id = $1 AND product_id = $2`,
+      // Kiểm tra xem có phải package không
+      const packageCheck = await db.query(
+        `SELECT package_id FROM carts WHERE user_id = $1 AND package_id = $2 AND item_type = 'package'`,
         [userId, product_id]
       );
+
+      let deleteResult;
+      if (packageCheck.rows.length > 0) {
+        // Xóa gói giá
+        deleteResult = await db.query(
+          `DELETE FROM carts WHERE user_id = $1 AND package_id = $2 AND item_type = 'package'`,
+          [userId, product_id]
+        );
+      } else {
+        // Xóa sản phẩm thông thường
+        deleteResult = await db.query(
+          `DELETE FROM carts WHERE user_id = $1 AND product_id = $2 AND item_type = 'product'`,
+          [userId, product_id]
+        );
+      }
 
       if (deleteResult.rowCount === 0) {
         return res.status(404).json({ error: 'Sản phẩm không có trong giỏ hàng' });
@@ -298,6 +533,7 @@ class CartController {
    * PATCH /cart/items/:product_id
    * Cập nhật số lượng sản phẩm trong giỏ hàng
    * Body: { quantity }
+   * Lưu ý: Gói giá luôn có quantity = 1
    */
   static async updateCartItem(req, res) {
     try {
@@ -313,7 +549,30 @@ class CartController {
         return res.status(400).json({ error: 'Số lượng phải là số nguyên dương' });
       }
 
-      // Lấy thông tin sản phẩm
+      // Kiểm tra xem có phải package không
+      const packageCheck = await db.query(
+        `SELECT package_id, package_price FROM carts c
+         LEFT JOIN pricing_packages pp ON c.package_id = pp.id
+         WHERE c.user_id = $1 AND c.package_id = $2 AND c.item_type = 'package'`,
+        [userId, product_id]
+      );
+
+      if (packageCheck.rows.length > 0) {
+        // Gói giá luôn là quantity 1, không cho phép thay đổi
+        const pkg = packageCheck.rows[0];
+        return res.json({
+          success: true,
+          message: 'Gói giá luôn là 1 sản phẩm',
+          item: {
+            product_id,
+            quantity: 1,
+            unit_price: pkg.package_price,
+            subtotal: 1 * pkg.package_price
+          }
+        });
+      }
+
+      // Xử lý Product thông thường
       const productResult = await db.query(
         `SELECT stock_quantity, current_price FROM products WHERE id = $1`,
         [product_id]
@@ -334,7 +593,7 @@ class CartController {
 
       // Cập nhật số lượng trong giỏ
       const updateResult = await db.query(
-        `UPDATE carts SET quantity = $1 WHERE user_id = $2 AND product_id = $3
+        `UPDATE carts SET quantity = $1 WHERE user_id = $2 AND product_id = $3 AND item_type = 'product'
          RETURNING quantity`,
         [quantity, userId, product_id]
       );
