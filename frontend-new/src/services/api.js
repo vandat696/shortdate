@@ -97,4 +97,42 @@ export const imageService = {
   },
 };
 
+// Pricing Packages Service
+export const pricingPackageService = {
+  getAllPackages: (params = {}) =>
+    api.get('/pricing-packages', { params }),
+  getPackageDetail: (id) =>
+    api.get(`/pricing-packages/${id}`),
+  getSupplierPackages: (supplierId) =>
+    api.get(`/pricing-packages/supplier/${supplierId}`),
+  createPackage: (data) =>
+    api.post('/pricing-packages', data),
+  updatePackage: (id, data) =>
+    api.put(`/pricing-packages/${id}`, data),
+  deletePackage: (id) =>
+    api.delete(`/pricing-packages/${id}`),
+  addItemToPackage: (packageId, productId, quantity) =>
+    api.post(`/pricing-packages/${packageId}/items`, { product_id: productId, quantity }),
+  removeItemFromPackage: (packageId, productId) =>
+    api.delete(`/pricing-packages/${packageId}/items/${productId}`),
+  updateItemQuantity: (packageId, productId, quantity) =>
+    api.put(`/pricing-packages/${packageId}/items/${productId}`, { quantity }),
+};
+
+// Pricing Tiers Service
+export const pricingTierService = {
+  getProductTiers: (productId) =>
+    api.get(`/pricing-tiers/product/${productId}`),
+  getTierByQuantity: (productId, quantity) =>
+    api.get(`/pricing-tiers/product/${productId}/quantity/${quantity}`),
+  calculatePrice: (productId, quantity) =>
+    api.get(`/pricing-tiers/product/${productId}/price/${quantity}`),
+  createTier: (data) =>
+    api.post('/pricing-tiers', data),
+  updateTier: (id, data) =>
+    api.put(`/pricing-tiers/${id}`, data),
+  deleteTier: (id) =>
+    api.delete(`/pricing-tiers/${id}`),
+};
+
 export default api;

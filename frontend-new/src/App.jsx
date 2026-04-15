@@ -24,6 +24,9 @@ import SupplierInventory from './features/supplier/pages/SupplierInventory';
 import SupplierOrders from './features/supplier/pages/SupplierOrders';
 import SupplierAnalytics from './features/supplier/pages/SupplierAnalytics';
 import SupplierProfilePage from './features/supplier/pages/SupplierProfilePage';
+import PricingManagementPage from './features/supplier/pages/PricingManagementPage';
+import PricingPackageProductsPage from './features/products/pages/PricingPackageProductsPage';
+import PricingPackagesListPage from './features/products/pages/PricingPackagesListPage';
 import { CartProvider } from './hooks/useCart.jsx';
 import { WishlistProvider } from './hooks/useWishlist.jsx';
 import { AuthProvider } from './hooks/useAuth.jsx';
@@ -41,6 +44,7 @@ export default function App() {
                 <Route path="/supplier/*" element={<SupplierDashboard />}>
                   <Route index element={<DashboardOverview />} />
                   <Route path="inventory" element={<SupplierInventory />} />
+                  <Route path="pricing" element={<PricingManagementPage />} />
                   <Route path="orders" element={<SupplierOrders />} />
                   <Route path="analytics" element={<SupplierAnalytics />} />
                   <Route path="profile" element={<SupplierProfilePage />} />
@@ -64,6 +68,8 @@ export default function App() {
                         <Route path="/" element={<HomePage />} />
                         <Route path="/products" element={<AllProductsPage />} />
                         <Route path="/products/:productId" element={<ProductDetailPage />} />
+                        <Route path="/pricing-packages" element={<PricingPackagesListPage />} />
+                        <Route path="/pricing-packages/:packageId/products" element={<PricingPackageProductsPage />} />
                         <Route path="/login" element={<LoginPage />} />
                         <Route path="/register" element={<RegisterPage />} />
                         <Route path="/profile" element={<ProfilePage />} />

@@ -25,6 +25,7 @@ import {
   Logout as LogoutIcon,
   Settings as SettingsIcon,
   Menu as MenuIcon,
+  LocalOffer as PricingIcon,
 } from '@mui/icons-material';
 import { useNavigate, Outlet, useLocation } from 'react-router-dom';
 import api from '../../../services/api';
@@ -35,6 +36,7 @@ const DRAWER_WIDTH = 256;
 const menuItems = [
   { label: 'Bảng điều khiển', icon: DashboardIcon, path: '/supplier' },
   { label: 'Kho hàng', icon: InventoryIcon, path: '/supplier/inventory' },
+  { label: 'Gói giá & Tầng giá', icon: PricingIcon, path: '/supplier/pricing' },
   { label: 'Đơn hàng', icon: OrdersIcon, path: '/supplier/orders' },
   { label: 'Phân tích', icon: AnalyticsIcon, path: '/supplier/analytics' },
 ];

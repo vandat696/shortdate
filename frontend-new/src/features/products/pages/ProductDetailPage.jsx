@@ -18,6 +18,8 @@ import { productService, imageService } from '../../../services/api';
 import ProductImageGallery from '../components/ProductImageGallery';
 import ProductControls from '../components/ProductControls';
 import SupplierInfoCard from '../components/SupplierInfoCard';
+import PricingPackagesDisplay from '../components/PricingPackagesDisplay';
+import PricingTiersDisplay from '../components/PricingTiersDisplay';
 import { RatingStars, RatingForm, RatingsList, useRating } from '../../../features/ratings';
 import { useAuth } from '../../../hooks/useAuth';
 import axios from 'axios';
@@ -640,6 +642,20 @@ export default function ProductDetailPage() {
                     // Optional: Show success message or navigate
                     console.log('Product added to cart from detail page');
                   }}
+                />
+
+                {/* Pricing Packages Display */}
+                {product.supplier_id && (
+                  <PricingPackagesDisplay 
+                    supplierId={product.supplier_id}
+                    productId={product.id}
+                  />
+                )}
+
+                {/* Pricing Tiers Display */}
+                <PricingTiersDisplay 
+                  productId={product.id}
+                  currentPrice={product.current_price}
                 />
               </Box>
             </Grid>

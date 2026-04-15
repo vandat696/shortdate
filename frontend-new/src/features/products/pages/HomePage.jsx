@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import HeroSalesCarousel from '../components/HeroSalesCarousel';
 import CategoriesSection from '../components/CategoriesSection';
-import BundlesSection from '../components/BundlesSection';
+import PricingPackageCategories from '../components/PricingPackageCategories';
 import NearYouMap from '../components/NearYouMap';
 import FilterSidebar from '../../../components/common/FilterSidebar';
 import { productService } from '../../../services/api';
@@ -281,8 +281,8 @@ export default function HomePage() {
           {/* Categories Section */}
           <CategoriesSection />
 
-          {/* Bundles Section */}
-          <BundlesSection />
+          {/* Pricing Package Categories Section */}
+          <PricingPackageCategories />
 
           {/* Near You Section - Map View */}
           <Box sx={{ width: '100%', py: '128px' }}>
