@@ -1,9 +1,24 @@
 /**
- * AUTO-PRICING ENGINE - Công Thức Toán Học
+ * AUTO-PRICING ENGINE - Công Thức Toán Học (Cập Nhật)
  * 
- * Tính Product_Risk_Score (0-100) dựa trên:
- * - daysLeft: số ngày còn lại đến HSD
- * - stockRatio: tỷ lệ tồn kho hiện tại / tồn kho ban đầu (0-1)
+ * LOGIC PRICING:
+ * 
+ * 1. DRY PRODUCTS (Sản Phẩm Khô) - Mức discount nhẹ hơn:
+ *    - 30-90 ngày: 0-5% discount (giữ giá tốt lâu hơn)
+ *    - 7-30 ngày: 5-20% discount  
+ *    - 1-7 ngày: 20-35% discount (cần bán nhanh lên)
+ *    - < 1 ngày: 35% discount (deadline)
+ *    - Tồn kho cao (>80%) + lưu kho 30+ ngày: +5% thêm
+ *
+ * 2. FRESH PRODUCTS (Sản Phẩm Tươi) - Mức discount aggressive:
+ *    - Risk Score >= 70: 40%+ discount (cần bán gấp vì short shelf-life)
+ *    - Risk Score 30-70: 10-40% discount
+ *    - Risk Score < 30: 5% discount
+ *    - < 1 ngày: min 50% discount
+ * 
+ * 3. STOCK RATIO:
+ *    - Tồn kho cao khi >80% so với khi nhập
+ *    - Ảnh hưởng: thêm 5-10% discount tùy loại sản phẩm
  */
 
 /**
@@ -15,17 +30,18 @@
  */
 export function calculateRiskScore(daysLeft, stockRatio, productType) {
   // Đảm bảo các giá trị hợp lệ
-  daysLeft = Math.max(0, Math.min(daysLeft, productType === 'dry' ? 90 : 1));
   stockRatio = Math.max(0, Math.min(stockRatio, 1));
 
   let timeScore, stockScore;
 
   if (productType === 'dry') {
-    // Dry product: 30-90 ngày HSD
-    timeScore = Math.max(0, 1 - daysLeft / 90) * 60;
-    stockScore = stockRatio * 40;
+    // Dry product: scaling mềm hơn
+    // 90+ ngày: 0% → 30 ngày: 20% → 0 ngày: 80%
+    const daysCapped = Math.max(0, Math.min(daysLeft, 90));
+    timeScore = (1 - daysCapped / 90) * 50;  // Giảm từ 60 → 50
+    stockScore = stockRatio * 30;  // Giảm từ 40 → 30
   } else {
-    // Fresh product: 0-1 ngày HSD
+    // Fresh product: vẫn aggressive vì nhất thiết phải bán nhanh
     timeScore = Math.max(0, 1 - daysLeft / 1) * 70;
     stockScore = stockRatio * 30;
   }
@@ -46,26 +62,50 @@ export function calculateRiskScore(daysLeft, stockRatio, productType) {
 export function calculateDiscount(riskScore, daysLeft, stockRatio, daysInStock, productType) {
   let discount = 0;
 
-  // Quy tắc cơ bản dựa trên Risk Score
-  if (riskScore >= 70) {
-    // Risk cao: discount 40% + thêm dựa trên score
-    discount = 40 + Math.min(40, (riskScore - 70) * 1);
-  } else if (riskScore >= 30) {
-    // Risk trung bình
-    discount = 10 + (riskScore - 30) * 0.75;
+  if (productType === 'dry') {
+    // Dry products: discount nhẹ hơn
+    // Logic: discount dạng step function
+    if (daysLeft > 30) {
+      // 30-90 ngày: 0-5% discount
+      discount = Math.max(0, (90 - daysLeft) / 12);  // 90 ngày → 0%, 30 ngày → 5%
+    } else if (daysLeft > 7) {
+      // 7-30 ngày: 5-20% discount
+      discount = 5 + (30 - daysLeft) * 0.6;  // 30 ngày → 5%, 7 ngày → 18.8%
+    } else if (daysLeft > 1) {
+      // 1-7 ngày: 20-35% discount
+      discount = 20 + (7 - daysLeft) * 2.5;  // 7 ngày → 20%, 1 ngày → 35%
+    } else {
+      // < 1 ngày: 35% discount (tối đa cho dry)
+      discount = 35;
+    }
+
+    // Nếu tồn kho cao thêm 5-10%
+    if (stockRatio > 0.8 && daysInStock && daysInStock > 30) {
+      discount = Math.min(40, discount + 5);
+    }
   } else {
-    // Risk thấp
-    discount = 10;
-  }
+    // Fresh products: vẫn aggressive vì cần bán gấp
+    // Quy tắc cơ bản dựa trên Risk Score
+    if (riskScore >= 70) {
+      // Risk cao: discount 40% + thêm dựa trên score
+      discount = 40 + Math.min(40, (riskScore - 70) * 1);
+    } else if (riskScore >= 30) {
+      // Risk trung bình
+      discount = 10 + (riskScore - 30) * 0.75;
+    } else {
+      // Risk thấp
+      discount = 5;
+    }
 
-  // Áp dụng thêm nếu HSD rất gần
-  if (daysLeft < 1) {
-    discount = Math.max(discount, 50);
-  }
+    // Áp dụng thêm nếu HSD rất gần
+    if (daysLeft < 1) {
+      discount = Math.max(discount, 50);
+    }
 
-  // Nếu tồn kho cao (>80%) và đã qua 50% thời gian
-  if (stockRatio > 0.8 && daysInStock && daysInStock > (productType === 'dry' ? 45 : 0.5)) {
-    discount = Math.min(100, discount + 10);
+    // Nếu tồn kho cao
+    if (stockRatio > 0.8 && daysInStock && daysInStock > 0.5) {
+      discount = Math.min(80, discount + 10);
+    }
   }
 
   return Math.max(0, Math.min(discount, 100));

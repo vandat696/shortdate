@@ -18,25 +18,17 @@ const validateProductType = (type) => {
 
 const validateHSD = (product_type, expiry_date) => {
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const expiryDate = new Date(expiry_date);
+  expiryDate.setHours(0, 0, 0, 0);
   const daysLeft = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
 
-  if (product_type === 'dry_product') {
-    // Dry_Product: 30-90 ngày
-    if (daysLeft < 30 || daysLeft > 90) {
-      return {
-        valid: false,
-        message: `Dry_Product phải có HSD từ 30-90 ngày. HSD hiện tại: ${daysLeft} ngày`
-      };
-    }
-  } else if (product_type === 'fresh_product') {
-    // Fresh_Product: 0-1 ngày
-    if (daysLeft < 0 || daysLeft > 1) {
-      return {
-        valid: false,
-        message: `Fresh_Product phải có HSD từ 0-1 ngày. HSD hiện tại: ${daysLeft} ngày`
-      };
-    }
+  // Chỉ kiểm tra sản phẩm chưa hết hạn (daysLeft >= 0 là hôm nay vẫn được bán)
+  if (daysLeft < 0) {
+    return {
+      valid: false,
+      message: `Sản phẩm đã hết hạn sử dụng. HSD: ${expiryDate.toLocaleDateString('vi-VN')}`
+    };
   }
 
   return { valid: true };

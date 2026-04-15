@@ -1,5 +1,6 @@
 import { Box, Typography, CircularProgress, Alert, Card, CardMedia, IconButton } from '@mui/material';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { useNavigate } from 'react-router-dom';
 import L from 'leaflet';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
@@ -10,6 +11,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { getSupplierDistance } from '../../../utils/distanceUtils';
 import { getApiBaseUrl, getBackendBaseUrl } from '../../../utils/apiConfig';
+import { getImageUrl } from '../../../services/api';
 
 // Fix Leaflet marker icon
 delete L.Icon.Default.prototype._getIconUrl;
@@ -36,6 +38,7 @@ const shopIcon = L.divIcon({
 });
 
 export default function NearYouMap() {
+  const navigate = useNavigate();
   const [userLocation, setUserLocation] = useState(null);
   const [suppliers, setSuppliers] = useState([]);
   const [nearbyProducts, setNearbyProducts] = useState([]);
@@ -328,6 +331,7 @@ export default function NearYouMap() {
             {nearbyProducts.slice(productCarouselIndex, productCarouselIndex + 5).map((product) => (
               <Card
                 key={`${product.id}-${productCarouselIndex}`}
+                onClick={() => navigate(`/products/${product.id}`)}
                 sx={{
                   borderRadius: '12px',
                   overflow: 'hidden',
@@ -345,7 +349,7 @@ export default function NearYouMap() {
                   <CardMedia
                     component="img"
                     height="100"
-                    image={`${getBackendBaseUrl()}${product.thumbnail_url || product.image_url}`}
+                    image={getImageUrl(product.thumbnail_url || product.image_url)}
                     alt={product.name}
                     sx={{ objectFit: 'cover' }}
                   />
