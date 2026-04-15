@@ -225,7 +225,7 @@ export default function Header({ onFilterMenuToggle }) {
                 ) : null,
                 userType !== 'supplier' ? (
                   <MenuItem key="orders" onClick={() => { handleMenuClose(); navigate('/orders'); }}>
-                    📋 Lịch Sử Giao Dịch
+                    Lịch sử mua hàng
                   </MenuItem>
                 ) : null,
                 userType === 'supplier' ? (
