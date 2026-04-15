@@ -223,6 +223,11 @@ export default function Header({ onFilterMenuToggle }) {
                     Trang Cá Nhân
                   </MenuItem>
                 ) : null,
+                userType !== 'supplier' ? (
+                  <MenuItem key="orders" onClick={() => { handleMenuClose(); navigate('/orders'); }}>
+                    📋 Lịch Sử Giao Dịch
+                  </MenuItem>
+                ) : null,
                 userType === 'supplier' ? (
                   <MenuItem key="shop" onClick={() => { handleMenuClose(); navigate('/supplier'); }}>
                     Quản Lý Cửa Hàng

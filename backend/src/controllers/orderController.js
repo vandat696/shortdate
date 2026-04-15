@@ -432,22 +432,30 @@ class OrderController {
       const { status, limit = 20, offset = 0 } = req.query;
 
       let query = 'SELECT id, order_code, status, total_amount, created_at FROM orders WHERE buyer_id = $1';
+      let countQuery = 'SELECT COUNT(*) as total FROM orders WHERE buyer_id = $1';
       let params = [userId];
 
       if (status) {
         query += ' AND status = $2';
+        countQuery += ' AND status = $2';
         params.push(status);
       }
 
-      query += ' ORDER BY created_at DESC LIMIT $' + (params.length + 1) + ' OFFSET $' + (params.length + 2);
-      params.push(limit);
-      params.push(offset);
+      // Get total count
+      const countResult = await db.query(countQuery, params);
+      const total = Number(countResult.rows[0]?.total || 0);
 
-      const result = await db.query(query, params);
+      query += ' ORDER BY created_at DESC LIMIT $' + (params.length + 1) + ' OFFSET $' + (params.length + 2);
+      const queryParams = [...params, limit, offset];
+
+      const result = await db.query(query, queryParams);
 
       return res.json({
         orders: result.rows,
-        count: result.rows.length
+        count: result.rows.length,
+        total,
+        limit: parseInt(limit),
+        offset: parseInt(offset)
       });
     } catch (error) {
       console.error('Error getting orders:', error);

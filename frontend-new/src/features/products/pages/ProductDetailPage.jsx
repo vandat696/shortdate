@@ -18,8 +18,8 @@ import { productService, imageService } from '../../../services/api';
 import ProductImageGallery from '../components/ProductImageGallery';
 import ProductControls from '../components/ProductControls';
 import SupplierInfoCard from '../components/SupplierInfoCard';
-import PricingPackagesDisplay from '../components/PricingPackagesDisplay';
 import PricingTiersDisplay from '../components/PricingTiersDisplay';
+import ProductCard from '../components/ProductCard';
 import { RatingStars, RatingForm, RatingsList, useRating } from '../../../features/ratings';
 import { useAuth } from '../../../hooks/useAuth';
 import axios from 'axios';
@@ -644,14 +644,6 @@ export default function ProductDetailPage() {
                   }}
                 />
 
-                {/* Pricing Packages Display */}
-                {product.supplier_id && (
-                  <PricingPackagesDisplay 
-                    supplierId={product.supplier_id}
-                    productId={product.id}
-                  />
-                )}
-
                 {/* Pricing Tiers Display */}
                 <PricingTiersDisplay 
                   productId={product.id}
@@ -831,112 +823,19 @@ export default function ProductDetailPage() {
             >
               Các sản phẩm xung quanh bạn có thể thích
             </Typography>
-            <Grid container spacing={3}>
-              {relatedProducts.length > 0 ? (
-                relatedProducts.map((relatedProduct) => (
-                  <Grid item xs={12} md={6} lg={3} key={relatedProduct.id}>
-                    <Box
-                      onClick={() => navigate(`/products/${relatedProduct.id}`)}
-                      sx={{
-                        height: '362px',
-                        backgroundColor: '#FFFFFF',
-                        borderRadius: '16px',
-                        overflow: 'hidden',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        transition: 'all 0.3s ease',
-                        '&:hover': {
-                          boxShadow: '0px 10px 25px rgba(0, 0, 0, 0.1)',
-                          transform: 'translateY(-4px)',
-                        },
-                      }}
-                    >
-                      {/* Product Image */}
-                      <Box
-                        sx={{
-                          height: '200px',
-                          backgroundColor: '#F1F5EB',
-                          backgroundImage: `url(http://localhost:5000${relatedProduct.image_url})`,
-                          backgroundSize: 'cover',
-                          backgroundPosition: 'center',
-                          position: 'relative',
-                        }}
-                      >
-                        {/* Discount Badge */}
-                        <Box
-                          sx={{
-                            position: 'absolute',
-                            top: '12px',
-                            right: '12px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            padding: '4px 8px',
-                            backgroundColor: 'rgba(252, 130, 12, 0.9)',
-                            borderRadius: '9999px',
-                            fontSize: '12px',
-                            fontWeight: 700,
-                            color: '#5E2C00',
-                          }}
-                        >
-                          <LocalOfferIcon sx={{ fontSize: '14px', flexShrink: 0 }} />
-                          -{Math.round(((relatedProduct.original_price - relatedProduct.current_price) / relatedProduct.original_price) * 100)}%
-                        </Box>
-                      </Box>
-                      
-                      {/* Product Info */}
-                      <Box sx={{ p: 2, flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                        <Typography
-                          sx={{
-                            fontFamily: '"Myriad Condensed",system-ui,sans-serif',
-                            fontWeight: 700,
-                            fontSize: '14px',
-                            color: '#181D17',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {relatedProduct.name}
-                        </Typography>
-                        
-                        {/* Price */}
-                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'baseline' }}>
-                          <Typography
-                            sx={{
-                              fontFamily: '"Myriad Condensed",system-ui,sans-serif',
-                              fontWeight: 800,
-                              fontSize: '18px',
-                              color: '#181D17',
-                            }}
-                          >
-                            {Math.round(relatedProduct.current_price).toLocaleString('vi-VN')}₫
-                          </Typography>
-                          <Typography
-                            sx={{
-                              fontFamily: '"Inter",system-ui,sans-serif',
-                              fontWeight: 400,
-                              fontSize: '14px',
-                              textDecoration: 'line-through',
-                              color: '#707A6C',
-                            }}
-                          >
-                            {Math.round(relatedProduct.original_price).toLocaleString('vi-VN')}₫
-                          </Typography>
-                        </Box>
-                      </Box>
-                    </Box>
+            {relatedProducts.length > 0 ? (
+              <Grid container spacing={3}>
+                {relatedProducts.map((relatedProduct) => (
+                  <Grid item xs={12} sm={6} md={3} key={relatedProduct.id}>
+                    <ProductCard product={relatedProduct} />
                   </Grid>
-                ))
-              ) : (
-                <Grid item xs={12}>
-                  <Typography sx={{ color: '#707A6C', textAlign: 'center' }}>
-                    Không có sản phẩm liên quan
-                  </Typography>
-                </Grid>
-              )}
-            </Grid>
+                ))}
+              </Grid>
+            ) : (
+              <Typography sx={{ color: '#707A6C', textAlign: 'center', py: 4 }}>
+                Không có sản phẩm liên quan
+              </Typography>
+            )}
           </Box>
         </Box>
       </Box>

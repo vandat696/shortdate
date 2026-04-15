@@ -15,6 +15,7 @@ import ProfilePage from './features/auth/pages/ProfilePage';
 import SupplierProductsPage from './features/products/pages/SupplierProductsPage';
 import CartPage from './features/cart/pages/CartPage';
 import OrderDetailPage from './features/orders/pages/OrderDetailPage';
+import OrderHistoryPage from './features/orders/pages/OrderHistoryPage';
 import OrderTrackingPage from './features/orders/pages/OrderTrackingPage';
 import CheckoutPage from './features/orders/pages/CheckoutPage';
 import WishlistPage from './features/wishlist/pages/WishlistPage';
@@ -77,6 +78,7 @@ export default function App() {
                         <Route path="/cart" element={<CartPage />} />
                         <Route path="/wishlist" element={<WishlistPage />} />
                         <Route path="/checkout" element={<CheckoutPage />} />
+                        <Route path="/orders" element={<OrderHistoryPage />} />
                         <Route path="/orders/:orderId" element={<OrderDetailPage />} />
                         <Route path="/orders/:orderId/track" element={<OrderTrackingPage />} />
                       </Routes>
