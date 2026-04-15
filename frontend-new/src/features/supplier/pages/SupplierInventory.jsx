@@ -75,6 +75,7 @@ export default function SupplierInventory() {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [priceHistory, setPriceHistory] = useState([]);
   const [priceChartLoading, setPriceChartLoading] = useState(false);
+  const [creatingProduct, setCreatingProduct] = useState(false);
 
   useEffect(() => {
     fetchProducts();
@@ -278,6 +279,8 @@ export default function SupplierInventory() {
         return;
       }
 
+      setCreatingProduct(true);
+
       const data = {
         name: formData.name,
         categoryIds: formData.categoryIds,
@@ -325,6 +328,8 @@ export default function SupplierInventory() {
         type: 'error',
         text: err.response?.data?.error || 'Lỗi khi lưu sản phẩm',
       });
+    } finally {
+      setCreatingProduct(false);
     }
   };
 
@@ -408,8 +413,9 @@ export default function SupplierInventory() {
           variant="contained"
           startIcon={<AddIcon />}
           onClick={handleOpenAddDialog}
+          disabled={creatingProduct}
           sx={{
-            backgroundColor: '#964900',
+            backgroundColor: creatingProduct ? '#C1B5AE' : '#964900',
             color: '#fff',
             textTransform: 'none',
             fontWeight: 700,
@@ -417,11 +423,12 @@ export default function SupplierInventory() {
             px: 3,
             py: 1.2,
             borderRadius: '8px',
-            '&:hover': { backgroundColor: '#7A3A00' },
+            '&:hover': { backgroundColor: creatingProduct ? '#C1B5AE' : '#7A3A00' },
             whiteSpace: 'nowrap',
+            cursor: creatingProduct ? 'not-allowed' : 'pointer',
           }}
         >
-          Thêm sản phẩm
+          {creatingProduct ? 'Đang thêm...' : 'Thêm sản phẩm'}
         </Button>
       </Box>
 
@@ -438,8 +445,9 @@ export default function SupplierInventory() {
             variant="contained"
             startIcon={<AddIcon />}
             onClick={handleOpenAddDialog}
+            disabled={creatingProduct}
             sx={{
-              backgroundColor: '#964900',
+              backgroundColor: creatingProduct ? '#C1B5AE' : '#964900',
               color: '#fff',
               textTransform: 'none',
               fontWeight: 700,
@@ -447,10 +455,10 @@ export default function SupplierInventory() {
               px: 3,
               py: 1.2,
               borderRadius: '8px',
-              '&:hover': { backgroundColor: '#7A3A00' },
+              '&:hover': { backgroundColor: creatingProduct ? '#C1B5AE' : '#7A3A00' },
             }}
           >
-            Thêm sản phẩm đầu tiên
+            {creatingProduct ? 'Đang thêm...' : 'Thêm sản phẩm đầu tiên'}
           </Button>
         </Paper>
       ) : (
@@ -868,15 +876,20 @@ export default function SupplierInventory() {
           />
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setOpenProductDialog(false)} sx={{ color: '#666' }}>
+          <Button onClick={() => setOpenProductDialog(false)} sx={{ color: '#666' }} disabled={creatingProduct}>
             Hủy
           </Button>
           <Button
             onClick={handleSaveProduct}
+            disabled={creatingProduct}
             variant="contained"
-            sx={{ backgroundColor: '#964900', '&:hover': { backgroundColor: '#7A3A00' } }}
+            sx={{ 
+              backgroundColor: creatingProduct ? '#C1B5AE' : '#964900', 
+              '&:hover': { backgroundColor: creatingProduct ? '#C1B5AE' : '#7A3A00' },
+              cursor: creatingProduct ? 'not-allowed' : 'pointer'
+            }}
           >
-            {editingProduct ? 'Cập nhật' : 'Thêm'}
+            {creatingProduct ? 'Đang lưu...' : (editingProduct ? 'Cập nhật' : 'Thêm')}
           </Button>
         </DialogActions>
       </Dialog>
