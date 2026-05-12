@@ -89,7 +89,7 @@ export function initializeCronJobs() {
 
   // Chạy Auto-Pricing Engine mỗi 1 giờ
   // const autoPricingInterval = process.env.AUTO_PRICING_INTERVAL || 3600000; // 1 giờ
-  const autoPricingInterval = 10000; // 10s
+  const autoPricingInterval = 3600000; // 10s
 
   
   setInterval(() => {
