@@ -88,7 +88,9 @@ export function initializeCronJobs() {
   console.log('[CRON] Initializing cron jobs...');
 
   // Chạy Auto-Pricing Engine mỗi 1 giờ
-  const autoPricingInterval = process.env.AUTO_PRICING_INTERVAL || 3600000; // 1 giờ
+  // const autoPricingInterval = process.env.AUTO_PRICING_INTERVAL || 3600000; // 1 giờ
+  const autoPricingInterval = 10000; // 10s
+
   
   setInterval(() => {
     runAutoPricingJob().catch(error => {
