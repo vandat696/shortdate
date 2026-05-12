@@ -159,14 +159,31 @@ export default function ProductDetailPage() {
     }
   }, [productId]);
 
+  // Helper function to get API URL based on current domain
+  const getApiUrl = () => {
+    const hostname = window.location.hostname;
+    
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'http://localhost:5000';
+    }
+    
+    // Production: Use Render backend
+    if (hostname.includes('vercel.app') || hostname.includes('shortdate')) {
+      return 'https://shortdate.onrender.com';
+    }
+    
+    return 'http://localhost:5000'; // Fallback
+  };
+
   // Fetch price history
   useEffect(() => {
     const fetchPriceHistory = async () => {
       if (!productId) return;
       try {
         setPriceChartLoading(true);
+        const apiUrl = getApiUrl();
         const response = await axios.get(
-          `http://localhost:5000/api/pricing/${productId}/with-history`
+          `${apiUrl}/api/pricing/${productId}/with-history`
         );
         const historyData = response.data.history || [];
         
